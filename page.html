@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            margin: 0;
+            padding: 20px 0;
+            color: #000;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+        .header img {
+            width: 40px;
+            height: 40px;
+        }
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .total {
+            margin: 40px 0;
+        }
+        .total-amount {
+            font-size: 50px;
+            font-weight: bold;
+            position: relative;
+            display: inline-block;
+        }
+        .edit-icon {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            position: absolute;
+            left: -45px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .description {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 50px;
+        }
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            max-width: 450px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .item img.logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            object-fit: contain;
+            background-color: #fff;
+            padding: 5px;
+        }
+        .details {
+            flex-grow: 1;
+            text-align: left;
+            margin-left: 15px;
+        }
+        .name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .status {
+            color: #28a745;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status img {
+            width: 20px;
+            height: 20px;
+        }
+        .amount-container {
+            position: relative;
+            text-align: right;
+        }
+        .amount {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .amount-edit {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        input.edit-input {
+            font-size: 22px;
+            font-weight: bold;
+            width: 130px;
+            text-align: right;
+            border: none;
+            background: transparent;
+            outline: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" alt="Edit">
+            <div class="title">Earnings</div>
+            <img src="https://static.vecteezy.com/system/resources/previews/049/794/189/non_2x/growing-bar-chart-icon-on-black-circle-growth-graph-arrow-concept-vector.jpg" alt="Chart">
+        </div>
+
+        <div class="total">
+            <div class="total-amount" id="total-amount">$1,567.21
+                <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">
+            </div>
+        </div>
+
+        <div class="description">Number of profits your wealth</div>
+
+        <div class="list">
+            <div class="item">
+                <img class="logo" src="https://1000logos.net/wp-content/uploads/2017/05/Color-Paypal-Logo.jpg" alt="PayPal">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-1">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(1)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="item">
+                <img class="logo" src="https://www.shutterstock.com/image-vector/white-wallet-icon-isolated-on-blue-260nw-2303671911.jpg" alt="Wallet">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-2">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(2)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="item">
+                <img class="logo" src="https://www.shutterstock.com/image-illustration/blue-computer-monitor-graph-chart-icon-260nw-2185081741.jpg" alt="Stock">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-3">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(3)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="item">
+                <img class="logo" src="https://static.vecteezy.com/system/resources/thumbnails/020/927/346/small_2x/vodafone-logo-brand-phone-symbol-with-name-white-design-england-mobile-illustration-with-red-background-free-vector.jpg" alt="Vodafone">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-4">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(4)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="item">
+                <img class="logo" src="https://media.licdn.com/dms/image/v2/D4D22AQFZGFHPfAvEaA/feedshare-shrink_800/B4DZXXi58rHsAg-/0/1743078007291?e=2147483647&v=beta&t=RgWSjx9ToZVah4QWsMtPe6xNDr_xsvdwRG1mCiGSYq8" alt="InstaPay">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-5">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(5)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="item">
+                <img class="logo" src="https://www.shutterstock.com/image-illustration/blue-laptop-dollar-icon-isolated-260nw-2185081835.jpg" alt="Bank">
+                <div class="details">
+                    <div class="name">Poppy</div>
+                    <div class="status">
+                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
+                        Accepted
+                    </div>
+                </div>
+                <div class="amount-container">
+                    <div class="amount" id="amount-6">$156.25
+                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(6)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function editTotal() {
+            const totalEl = document.getElementById('total-amount');
+            const current = totalEl.textContent.trim();
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = current.replace('$', '').replace(',', '');
+            input.className = 'edit-input';
+            totalEl.innerHTML = '$';
+            totalEl.appendChild(input);
+            input.focus();
+            input.select();
+
+            const save = () => {
+                let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
+                totalEl.innerHTML = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                totalEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">';
+            };
+
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') input.blur();
+            });
+        }
+
+        function editAmount(id) {
+            const amountEl = document.getElementById('amount-' + id);
+            const current = amountEl.textContent.trim();
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = current.replace('$', '').replace(',', '');
+            input.className = 'edit-input';
+            amountEl.innerHTML = '$';
+            amountEl.appendChild(input);
+            input.focus();
+            input.select();
+
+            const save = () => {
+                let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
+                amountEl.innerHTML = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                amountEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(' + id + ')">';
+                updateTotal();
+            };
+
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') input.blur();
+            });
+        }
+
+        function updateTotal() {
+            let sum = 0;
+            for (let i = 1; i <= 6; i++) {
+                const text = document.getElementById('amount-' + i).textContent.trim();
+                const val = parseFloat(text.replace('$', '').replace(',', '')) || 0;
+                sum += val;
+            }
+            const totalEl = document.getElementById('total-amount');
+            totalEl.innerHTML = '$' + sum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            totalEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">';
+        }
+    </script>
+</body>
+</html>
