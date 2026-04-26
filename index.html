@@ -4,308 +4,1378 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #fff;
-            margin: 0;
-            padding: 20px 0;
-            color: #000;
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #3B3B3B;
+            --text-primary: #fff;
+            --text-secondary: #ccc;
+            --text-muted: #aaa;
+            --accent: #0386FF;
+            --accent-hover: #0270d8;
+            --success: #00c853;
+            --danger: #ff4444;
+            --warning: #ff9800;
+            --border: #555;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: center;
+        [data-theme="light"] {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #000;
+            --text-secondary: #333;
+            --text-muted: #666;
+            --accent: #0386FF;
+            --accent-hover: #0270d8;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ff9800;
+            --border: #ddd;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            margin-bottom: 30px;
-        }
-        .header img {
-            width: 40px;
-            height: 40px;
-        }
-        .title {
-            font-size: 26px;
-            font-weight: bold;
-        }
-        .total {
-            margin: 40px 0;
-        }
-        .total-amount {
-            font-size: 50px;
-            font-weight: bold;
-            position: relative;
-            display: inline-block;
-        }
-        .edit-icon {
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-            position: absolute;
-            left: -45px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .description {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 50px;
-        }
-        .list {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            align-items: center;
-        }
-        .item {
-            display: flex;
-            align-items: center;
-            width: 90%;
-            max-width: 450px;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .item img.logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
-            object-fit: contain;
-            background-color: #fff;
-            padding: 5px;
-        }
-        .details {
-            flex-grow: 1;
-            text-align: left;
-            margin-left: 15px;
-        }
-        .name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .status {
-            color: #28a745;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .status img {
-            width: 20px;
-            height: 20px;
-        }
-        .amount-container {
-            position: relative;
-            text-align: right;
-        }
-        .amount {
-            font-size: 22px;
-            font-weight: bold;
-        }
-        .amount-edit {
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-            position: absolute;
-            left: -40px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        input.edit-input {
-            font-size: 22px;
-            font-weight: bold;
-            width: 130px;
-            text-align: right;
-            border: none;
-            background: transparent;
-            outline: 2px solid #007bff;
-            border-radius: 8px;
-            padding: 5px;
-        }
+        * { font-family: Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-primary); color: var(--text-primary); padding: 20px 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .container { max-width: 500px; margin: 0 auto; text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 30px; }
+        .header img { width: 40px; height: 40px; }
+        .title { font-size: 26px; font-weight: bold; }
+        .total { margin: 40px 0; }
+        .total-amount { font-size: 50px; font-weight: bold; position: relative; display: inline-block; }
+        .edit-icon { font-size: 20px; color: var(--accent); cursor: pointer; position: absolute; left: -35px; top: 50%; transform: translateY(-50%); opacity: 0.7; transition: opacity 0.2s; }
+        .edit-icon:hover { opacity: 1; }
+        .description { font-size: 16px; margin-bottom: 10px; color: var(--text-secondary); }
+        .goal-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 50px; }
+        .description2 { color: var(--accent); font-size: 13px; }
+        .goal-edit-icon { font-size: 14px; color: var(--accent); cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+        .goal-edit-icon:hover { opacity: 1; }
+        .goal-input { font-size: 13px; color: var(--accent); background: transparent; border: 2px solid var(--accent); border-radius: 8px; padding: 4px 8px; width: 100px; text-align: center; outline: none; }
+        .list { display: flex; flex-direction: column; gap: 30px; align-items: center; }
+        .item { display: flex; align-items: center; width: 90%; max-width: 450px; background-color: var(--bg-card); padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; user-select: none; -webkit-user-select: none; position: relative; }
+        .item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .item img.logo { width: 60px; height: 60px; border-radius: 15px; object-fit: contain; background-color: #fff; padding: 5px; margin-right: 15px; flex-shrink: 0; }
+        .details { flex-grow: 1; text-align: left; }
+        .name { color: var(--text-primary); font-weight: 700; font-size: 15px; margin-bottom: 5px; }
+        .status { color: var(--success); font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .amount-container { position: relative; text-align: right; margin-left: 15px; }
+        .amount { font-size: 22px; font-weight: bold; color: var(--text-primary); }
+        .amount-edit { width: 20px; height: 20px; cursor: pointer; position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
+        input.edit-input { font-size: 22px; font-weight: bold; width: 130px; text-align: right; border: none; background: transparent; outline: 2px solid var(--accent); border-radius: 8px; padding: 5px; color: var(--text-primary); }
+
+        .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .login-overlay.active { display: flex; }
+        .login-box { background: var(--bg-secondary); padding: 35px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .login-box h2 { margin-bottom: 25px; font-size: 24px; }
+        .login-box input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-primary); color: var(--text-primary); font-size: 16px; outline: none; }
+        .login-box input:focus { border-color: var(--accent); }
+        .login-box button { width: 100%; padding: 14px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .login-box button:hover { background: var(--accent-hover); }
+        .login-box .switch-mode { margin-top: 18px; color: var(--text-muted); font-size: 14px; }
+        .login-box .switch-mode span { color: var(--accent); cursor: pointer; font-weight: bold; }
+        .login-box .error-msg { color: var(--danger); font-size: 13px; margin-top: -5px; margin-bottom: 10px; min-height: 18px; }
+        .skip-login { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+        .skip-login button { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .skip-login button:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+
+        .auth-float-btn { position: fixed; top: 15px; right: 15px; z-index: 100; background: var(--accent); color: #fff; border: none; border-radius: 25px; padding: 8px 16px; font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none; }
+        .auth-float-btn.visible { display: block; }
+        .auth-float-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+        .user-bar { display: none; justify-content: space-between; align-items: center; padding: 10px 20px; margin-bottom: 15px; }
+        .user-bar.active { display: flex; }
+        .user-bar .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); }
+        .user-bar .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: #fff; }
+        .user-bar button.logout-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .user-bar button.logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+        .sync-status { font-size: 11px; color: var(--success); margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .sync-status.offline { color: var(--warning); }
+        .sync-status.local-only { color: var(--text-muted); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block; }
+        .sync-status.offline .dot { background: var(--warning); }
+        .sync-status.local-only .dot { background: var(--text-muted); }
+
+        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
+        .preset-item { background: var(--bg-card); border: 2px solid transparent; border-radius: 12px; padding: 12px 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .preset-item:hover { border-color: var(--accent); transform: scale(1.05); }
+        .preset-item img { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: #fff; padding: 3px; margin-bottom: 6px; }
+        .preset-item span { display: block; font-size: 12px; color: var(--text-primary); }
+        .preset-item.added { opacity: 0.5; pointer-events: none; border-color: var(--success); }
+
+        .add-btn { display: flex; align-items: center; justify-content: center; width: 90%; max-width: 450px; padding: 20px; border: 2px dashed var(--border); border-radius: 15px; cursor: pointer; margin: 20px auto 0; color: var(--text-muted); font-size: 16px; gap: 10px; }
+        .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--bg-secondary); padding: 25px; border-radius: 20px; width: 90%; max-width: 420px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .modal-box h3 { margin-bottom: 15px; font-size: 20px; }
+        .modal-box .section-title { text-align: left; font-size: 14px; color: var(--text-muted); margin: 15px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .modal-box input, .modal-box select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-primary); color: var(--text-primary); font-size: 15px; outline: none; }
+        .modal-box input:focus { border-color: var(--accent); }
+        .modal-box .img-preview { width: 60px; height: 60px; border-radius: 12px; object-fit: contain; background: #fff; margin: 8px auto; display: none; }
+        .modal-box .img-preview.active { display: block; }
+        .modal-box .error-text { color: var(--danger); font-size: 12px; margin: -8px 0 10px; display: none; }
+        .modal-box .error-text.active { display: block; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .modal-buttons .btn-primary { background: var(--accent); color: #fff; }
+        .modal-buttons .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+        .custom-toggle { color: var(--accent); font-size: 13px; cursor: pointer; margin: 10px 0; display: inline-block; }
+        .custom-toggle:hover { text-decoration: underline; }
+
+        .delete-confirm { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10001; }
+        .delete-confirm.active { display: flex; }
+        .delete-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
+        .delete-box h3 { color: var(--danger); margin-bottom: 15px; }
+        .delete-box p { color: var(--text-secondary); margin-bottom: 20px; }
+        .delete-box .delete-buttons { display: flex; gap: 10px; }
+        .delete-box .delete-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .delete-box .btn-delete { background: var(--danger); color: #fff; }
+        .delete-box .btn-cancel { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+
+        .lang-selector { position: fixed; top: 15px; left: 15px; z-index: 100; }
+        .lang-selector select { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer; outline: none; }
+        .lang-selector select:hover { border-color: var(--accent); }
+        
+        /* Location permission modal */
+        .location-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10002; }
+        .location-modal.active { display: flex; }
+        .location-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
+        .location-box h3 { margin-bottom: 15px; color: var(--accent); }
+        .location-box p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; }
+        .location-box .loc-buttons { display: flex; gap: 10px; }
+        .location-box .loc-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .location-box .btn-allow { background: var(--accent); color: #fff; }
+        .location-box .btn-deny { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+
+        /* Settings Button & Modal */
+        .settings-btn { position: fixed; top: 15px; right: 15px; z-index: 100; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all 0.2s; }
+        .settings-btn:hover { border-color: var(--accent); color: var(--accent); transform: rotate(30deg); }
+        
+        .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10003; }
+        .settings-modal.active { display: flex; }
+        .settings-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .settings-box h3 { margin-bottom: 20px; font-size: 22px; color: var(--accent); }
+        .settings-section { text-align: left; margin-bottom: 20px; }
+        .settings-section-title { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .settings-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-card); border-radius: 10px; margin-bottom: 10px; }
+        .settings-option label { font-size: 14px; color: var(--text-primary); }
+        .settings-option select { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; cursor: pointer; }
+        .settings-option select:hover { border-color: var(--accent); }
+        .toggle-switch { position: relative; width: 50px; height: 26px; background: var(--border); border-radius: 13px; cursor: pointer; transition: background 0.3s; }
+        .toggle-switch.active { background: var(--accent); }
+        .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: transform 0.3s; }
+        .toggle-switch.active::after { transform: translateX(24px); }
+        .close-settings { margin-top: 20px; padding: 12px 30px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); border-radius: 10px; cursor: pointer; font-size: 14px; }
+        .close-settings:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Long press indicator */
+        .long-press-indicator { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--text-muted); opacity: 0.6; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" alt="Edit">
-            <div class="title">Earnings</div>
-            <img src="https://static.vecteezy.com/system/resources/previews/049/794/189/non_2x/growing-bar-chart-icon-on-black-circle-growth-graph-arrow-concept-vector.jpg" alt="Chart">
-        </div>
+<div class="lang-selector">
+        <select id="langSelect" onchange="changeLanguage(this.value)">
+            <option value="en">🇬🇧 English</option>
+            <option value="ar">🇸🇦 العربية</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="it">🇮🇹 Italiano</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="pt">🇵🇹 Português</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="nl">🇳🇱 Nederlands</option>
+            <option value="pl">🇵🇱 Polski</option>
+        </select>
+    </div>
 
-        <div class="total">
-            <div class="total-amount" id="total-amount">$1,567.21
-                <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">
-            </div>
-        </div>
+    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
 
-        <div class="description">Number of profits your wealth</div>
-
-        <div class="list">
-            <div class="item">
-                <img class="logo" src="https://1000logos.net/wp-content/uploads/2017/05/Color-Paypal-Logo.jpg" alt="PayPal">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-1">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(1)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="item">
-                <img class="logo" src="https://www.shutterstock.com/image-vector/white-wallet-icon-isolated-on-blue-260nw-2303671911.jpg" alt="Wallet">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-2">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(2)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="item">
-                <img class="logo" src="https://www.shutterstock.com/image-illustration/blue-computer-monitor-graph-chart-icon-260nw-2185081741.jpg" alt="Stock">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-3">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(3)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="item">
-                <img class="logo" src="https://static.vecteezy.com/system/resources/thumbnails/020/927/346/small_2x/vodafone-logo-brand-phone-symbol-with-name-white-design-england-mobile-illustration-with-red-background-free-vector.jpg" alt="Vodafone">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-4">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(4)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="item">
-                <img class="logo" src="https://media.licdn.com/dms/image/v2/D4D22AQFZGFHPfAvEaA/feedshare-shrink_800/B4DZXXi58rHsAg-/0/1743078007291?e=2147483647&v=beta&t=RgWSjx9ToZVah4QWsMtPe6xNDr_xsvdwRG1mCiGSYq8" alt="InstaPay">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-5">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(5)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="item">
-                <img class="logo" src="https://www.shutterstock.com/image-illustration/blue-laptop-dollar-icon-isolated-260nw-2185081835.jpg" alt="Bank">
-                <div class="details">
-                    <div class="name">Poppy</div>
-                    <div class="status">
-                        <img src="https://cdn.vectorstock.com/i/1000v/50/69/green-check-mark-icon-in-a-circle-tick-symbol-vector-38175069.jpg" alt="Accepted">
-                        Accepted
-                    </div>
-                </div>
-                <div class="amount-container">
-                    <div class="amount" id="amount-6">$156.25
-                        <img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(6)">
-                    </div>
-                </div>
+    <div id="locationModal" class="location-modal">
+        <div class="location-box">
+            <h3>📍 <span id="locTitle">Location Access</span></h3>
+            <p id="locMessage">Allow access to your location to automatically set the appropriate language for your country?</p>
+            <div class="loc-buttons">
+                <button class="btn-allow" onclick="allowLocation()" id="btnAllow">Allow</button>
+                <button class="btn-deny" onclick="denyLocation()" id="btnDeny">Not Now</button>
             </div>
         </div>
     </div>
 
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-box">
+            <h3>⚙️ <span id="settingsTitle">Settings</span></h3>
+            
+            <div class="settings-section">
+                <div class="settings-section-title" id="langSectionTitle">🌐 Language</div>
+                <div class="settings-option">
+                    <label id="langLabel">Select Language</label>
+                    <select id="settingsLangSelect" onchange="changeLanguage(this.value)">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ar">🇸🇦 العربية</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="pt">🇵🇹 Português</option>
+                        <option value="tr">🇹🇷 Türkçe</option>
+                        <option value="nl">🇳🇱 Nederlands</option>
+                        <option value="pl">🇵🇱 Polski</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title" id="themeSectionTitle">🎨 Appearance</div>
+                <div class="settings-option">
+                    <label id="darkModeLabel">Dark Mode</label>
+                    <div class="toggle-switch" id="themeToggle" onclick="toggleThemeFromSettings()"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title" id="currencySectionTitle">💰 Currency</div>
+                <div class="settings-option">
+                    <label id="currencyLabel">Select Currency</label>
+                    <select id="currencySelect" onchange="changeCurrency(this.value)">
+                        <option value="EUR">🇪🇺 EUR (€)</option>
+                        <option value="USD">🇺🇸 USD ($)</option>
+                        <option value="GBP">🇬🇧 GBP (£)</option>
+                        <option value="JPY">🇯🇵 JPY (¥)</option>
+                        <option value="EGP">🇪🇬 EGP (E£)</option>
+                        <option value="SAR">🇸🇦 SAR (﷼)</option>
+                        <option value="AED">🇦🇪 AED (د.إ)</option>
+                        <option value="TRY">🇹🇷 TRY (₺)</option>
+                        <option value="INR">🇮🇳 INR (₹)</option>
+                        <option value="CNY">🇨🇳 CNY (¥)</option>
+                        <option value="KRW">🇰🇷 KRW (₩)</option>
+                        <option value="RUB">🇷🇺 RUB (₽)</option>
+                        <option value="BRL">🇧🇷 BRL (R$)</option>
+                        <option value="CAD">🇨🇦 CAD (C$)</option>
+                        <option value="AUD">🇦🇺 AUD (A$)</option>
+                        <option value="CHF">🇨🇭 CHF (Fr)</option>
+                        <option value="SEK">🇸🇪 SEK (kr)</option>
+                        <option value="NOK">🇳🇴 NOK (kr)</option>
+                        <option value="DKK">🇩🇰 DKK (kr)</option>
+                        <option value="PLN">🇵🇱 PLN (zł)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="close-settings" onclick="closeSettings()" id="btnCloseSettings">Close</button>
+        </div>
+    </div>
+
+    <button id="authFloatBtn" class="auth-float-btn" onclick="showLogin()">🔐 Sign In</button>
+
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2 id="loginTitle">Sign In</h2>
+            <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
+            <div class="error-msg" id="errorMsg"></div>
+            <button id="authBtn" onclick="handleAuth()">Sign In</button>
+            <div class="switch-mode">
+                <span id="switchText">No account?</span>
+                <span onclick="toggleMode()" id="switchLink"> Create Account</span>
+            </div>
+            <div class="skip-login">
+                <button onclick="skipLogin()">⏭️ Continue without Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="addModalTitle">Add New Account</h3>
+            <div class="section-title" id="presetSectionTitle">🏦 Quick Select</div>
+            <div class="preset-grid" id="presetGrid"></div>
+            <div class="custom-toggle" onclick="showCustomForm()" id="customToggle">✏️ Or add custom account</div>
+            <div id="customForm" style="display:none;">
+                <input type="text" id="newAccountName" placeholder="Account name (e.g. Binance)">
+                <select id="newAccountType" onchange="handleTypeChange()">
+                    <option value="">Select image type...</option>
+                    <option value="url">Image URL</option>
+                    <option value="upload">Upload from device</option>
+                </select>
+                <input type="url" id="newAccountImage" placeholder="Image URL" style="display:none;">
+                <input type="file" id="newAccountFile" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                <img id="imagePreview" class="img-preview" alt="Preview">
+                <div id="imageError" class="error-text">⚠️ Adult content not allowed</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="addNewAccount()" id="btnAdd">Add</button>
+                <button class="btn-secondary" onclick="closeAddModal()" id="btnCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteConfirm" class="delete-confirm">
+        <div class="delete-box">
+            <h3>⚠️ <span id="deleteTitle">Confirm Delete</span></h3>
+            <p id="deleteMessage">Are you sure you want to delete this account?</p>
+            <div class="delete-buttons">
+                <button class="btn-delete" onclick="confirmDelete()" id="btnDelete">Delete</button>
+                <button class="btn-cancel" onclick="cancelDelete()" id="btnCancelDelete">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp">
+        <div class="container">
+            <div class="user-bar" id="userBar">
+                <div class="user-info">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <span id="userEmail">user@email.com</span>
+                </div>
+                <button class="logout-btn" onclick="logout()" id="btnLogout">Logout</button>
+            </div>
+<br/>
+<br/>
+            <div class="header">
+                <li onclick="toggleTheme()" style="cursor:pointer; list-style:none;">
+                    <span id="themeIcon" style="font-size: 30px;">☀️</span>
+                </li>
+                <div class="title" id="appTitle">Total</div>
+                <img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1776707273/20260420_194720_aky8uu.png" alt="Chart">
+            </div>
+
+            <div class="total">
+                <div class="total-amount" id="total-amount">€0.00
+                    <i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>
+                </div>
+            </div>
+
+            <div class="description" id="descCollected">The amount collected</div>
+            <div class="goal-container">
+                <span class="description2" id="goalText">Desired goal [ 50K € ]</span>
+                <i class="fa-solid fa-pen goal-edit-icon" onclick="editGoal()"></i>
+            </div>
+            
+
+            <div class="list" id="accountsList"></div>
+
+            <div class="add-btn" onclick="openAddModal()">
+                <span style="font-size: 24px; font-weight: bold;">+</span>
+                <span id="addBtnText">Add New Account</span>
+            </div>
+        </div>
+    </div>
+   <div class="sync-status" id="syncStatus">
+                <span class="dot"></span> <span id="syncText">Local mode</span>
+            </div>
+
     <script>
+        // ═══════════════════════════════════════════════
+        // TRANSLATIONS (10 Languages)
+        // ═══════════════════════════════════════════════
+        const TRANSLATIONS = {
+            en: {
+                signIn: "Sign In", createAccount: "Create Account", noAccount: "No account?",
+                email: "Email", password: "Password", continueWithout: "⏭️ Continue without Sign In",
+                addNewAccount: "Add New Account", quickSelect: "🏦 Quick Select",
+                customAccount: "✏️ Or add custom account", accountName: "Account name (e.g. Binance)",
+                selectType: "Select image type...", imageURL: "Image URL", uploadDevice: "Upload from device",
+                add: "Add", cancel: "Cancel", confirmDelete: "Confirm Delete",
+                deleteMsg: "Are you sure you want to delete this account?", deleteBtn: "Delete",
+                logout: "Logout", total: "Total", amountCollected: "The amount collected",
+                desiredGoal: "Desired goal", localMode: "Local mode", cloudSync: "Synced with cloud",
+                offlineMode: "Offline mode", adultContent: "⚠️ Adult content not allowed",
+                enterName: "Please enter account name", selectImageType: "Please select image type",
+                enterURL: "Please enter image URL", selectImage: "Please select an image",
+                fillFields: "Please fill all fields", passwordLength: "Password must be at least 6 characters",
+                invalidEmail: "Invalid email", userDisabled: "This account is disabled",
+                userNotFound: "No account found with this email", wrongPassword: "Incorrect password",
+                emailInUse: "This email is already in use", weakPassword: "Password is too weak",
+                networkError: "Network connection failed", apiKeyError: "Invalid API key",
+                operationNotAllowed: "Email sign-in not enabled in Firebase",
+                logoutConfirm: "Are you sure you want to logout?", open: "Open",
+                locTitle: "Location Access", locMessage: "Allow access to your location to automatically set the appropriate language for your country?",
+                locAllow: "Allow", locDeny: "Not Now",
+                settings: "Settings", language: "Language", selectLanguage: "Select Language",
+                appearance: "Appearance", darkMode: "Dark Mode", currency: "Currency",
+                selectCurrency: "Select Currency", close: "Close", longPressToDelete: "Long press to delete"
+            },
+            ar: {
+                signIn: "تسجيل الدخول", createAccount: "إنشاء حساب", noAccount: "ليس لديك حساب؟",
+                email: "البريد الإلكتروني", password: "كلمة المرور", continueWithout: "⏭️ متابعة بدون تسجيل دخول",
+                addNewAccount: "إضافة حساب جديد", quickSelect: "🏦 اختيار جاهز",
+                customAccount: "✏️ أو إضافة حساب مخصص", accountName: "اسم الحساب (مثال: Binance)",
+                selectType: "اختر نوع الصورة...", imageURL: "رابط صورة", uploadDevice: "رفع من الجهاز",
+                add: "إضافة", cancel: "إلغاء", confirmDelete: "تأكيد الحذف",
+                deleteMsg: "هل أنت متأكد من حذف هذا الحساب؟", deleteBtn: "حذف",
+                logout: "خروج", total: "المجموع", amountCollected: "المبلغ المحصل",
+                desiredGoal: "الهدف المطلوب", localMode: "وضع محلي", cloudSync: "متزامن مع السحابة",
+                offlineMode: "وضع عدم الاتصال", adultContent: "⚠️ لا يمكن استخدام صورة إباحية",
+                enterName: "يرجى إدخال اسم الحساب", selectImageType: "يرجى اختيار نوع الصورة",
+                enterURL: "يرجى إدخال رابط الصورة", selectImage: "يرجى اختيار صورة",
+                fillFields: "يرجى ملء جميع الحقول", passwordLength: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                invalidEmail: "البريد الإلكتروني غير صالح", userDisabled: "هذا الحساب معطل",
+                userNotFound: "لا يوجد حساب بهذا البريد", wrongPassword: "كلمة المرور غير صحيحة",
+                emailInUse: "هذا البريد مستخدم بالفعل", weakPassword: "كلمة المرور ضعيفة جداً",
+                networkError: "فشل الاتصال بالشبكة", apiKeyError: "مفتاح API غير صالح",
+                operationNotAllowed: "تسجيل الدخول بالبريد غير مفعل في Firebase",
+                logoutConfirm: "هل تريد تسجيل الخروج؟", open: "مفتوح",
+                locTitle: "الوصول للموقع", locMessage: "السماح بالوصول إلى موقعك لتحديد اللغة المناسبة لبلدك تلقائياً؟",
+                locAllow: "سماح", locDeny: "ليس الآن",
+                settings: "الإعدادات", language: "اللغة", selectLanguage: "اختر اللغة",
+                appearance: "المظهر", darkMode: "الوضع الداكن", currency: "العملة",
+                selectCurrency: "اختر العملة", close: "إغلاق", longPressToDelete: "اضغط مطولاً للحذف"
+            },
+            fr: {
+                signIn: "Connexion", createAccount: "Créer un compte", noAccount: "Pas de compte ?",
+                email: "E-mail", password: "Mot de passe", continueWithout: "⏭️ Continuer sans connexion",
+                addNewAccount: "Ajouter un compte", quickSelect: "🏦 Sélection rapide",
+                customAccount: "✏️ Ou ajouter un compte personnalisé", accountName: "Nom du compte (ex: Binance)",
+                selectType: "Sélectionnez le type d'image...", imageURL: "URL de l'image", uploadDevice: "Télécharger depuis l'appareil",
+                add: "Ajouter", cancel: "Annuler", confirmDelete: "Confirmer la suppression",
+                deleteMsg: "Êtes-vous sûr de vouloir supprimer ce compte ?", deleteBtn: "Supprimer",
+                logout: "Déconnexion", total: "Total", amountCollected: "Montant collecté",
+                desiredGoal: "Objectif souhaité", localMode: "Mode local", cloudSync: "Synchronisé avec le cloud",
+                offlineMode: "Mode hors ligne", adultContent: "⚠️ Contenu adulte non autorisé",
+                enterName: "Veuillez entrer le nom du compte", selectImageType: "Veuillez sélectionner le type d'image",
+                enterURL: "Veuillez entrer l'URL de l'image", selectImage: "Veuillez sélectionner une image",
+                fillFields: "Veuillez remplir tous les champs", passwordLength: "Le mot de passe doit contenir au moins 6 caractères",
+                invalidEmail: "E-mail invalide", userDisabled: "Ce compte est désactivé",
+                userNotFound: "Aucun compte trouvé avec cet e-mail", wrongPassword: "Mot de passe incorrect",
+                emailInUse: "Cet e-mail est déjà utilisé", weakPassword: "Mot de passe trop faible",
+                networkError: "Échec de la connexion réseau", apiKeyError: "Clé API invalide",
+                operationNotAllowed: "La connexion par e-mail n'est pas activée dans Firebase",
+                logoutConfirm: "Voulez-vous vous déconnecter ?", open: "Ouvert",
+                locTitle: "Accès à la localisation", locMessage: "Autoriser l'accès à votre localisation pour définir automatiquement la langue appropriée pour votre pays ?",
+                locAllow: "Autoriser", locDeny: "Pas maintenant",
+                settings: "Paramètres", language: "Langue", selectLanguage: "Choisir la langue",
+                appearance: "Apparence", darkMode: "Mode sombre", currency: "Devise",
+                selectCurrency: "Choisir la devise", close: "Fermer", longPressToDelete: "Appui long pour supprimer"
+            },
+            es: {
+                signIn: "Iniciar sesión", createAccount: "Crear cuenta", noAccount: "¿No tienes cuenta?",
+                email: "Correo electrónico", password: "Contraseña", continueWithout: "⏭️ Continuar sin iniciar sesión",
+                addNewAccount: "Agregar cuenta", quickSelect: "🏦 Selección rápida",
+                customAccount: "✏️ O agregar cuenta personalizada", accountName: "Nombre de la cuenta (ej: Binance)",
+                selectType: "Seleccione tipo de imagen...", imageURL: "URL de imagen", uploadDevice: "Subir desde dispositivo",
+                add: "Agregar", cancel: "Cancelar", confirmDelete: "Confirmar eliminación",
+                deleteMsg: "¿Estás seguro de eliminar esta cuenta?", deleteBtn: "Eliminar",
+                logout: "Cerrar sesión", total: "Total", amountCollected: "Monto recaudado",
+                desiredGoal: "Objetivo deseado", localMode: "Modo local", cloudSync: "Sincronizado con la nube",
+                offlineMode: "Modo sin conexión", adultContent: "⚠️ Contenido para adultos no permitido",
+                enterName: "Por favor ingrese el nombre de la cuenta", selectImageType: "Por favor seleccione el tipo de imagen",
+                enterURL: "Por favor ingrese la URL de la imagen", selectImage: "Por favor seleccione una imagen",
+                fillFields: "Por favor complete todos los campos", passwordLength: "La contraseña debe tener al menos 6 caracteres",
+                invalidEmail: "Correo electrónico inválido", userDisabled: "Esta cuenta está deshabilitada",
+                userNotFound: "No se encontró cuenta con este correo", wrongPassword: "Contraseña incorrecta",
+                emailInUse: "Este correo ya está en uso", weakPassword: "Contraseña demasiado débil",
+                networkError: "Error de conexión de red", apiKeyError: "Clave API inválida",
+                operationNotAllowed: "Inicio de sesión por correo no habilitado en Firebase",
+                logoutConfirm: "¿Deseas cerrar sesión?", open: "Abierto",
+                locTitle: "Acceso a ubicación", locMessage: "¿Permitir acceso a tu ubicación para configurar automáticamente el idioma adecuado para tu país?",
+                locAllow: "Permitir", locDeny: "Ahora no",
+                settings: "Ajustes", language: "Idioma", selectLanguage: "Seleccionar idioma",
+                appearance: "Apariencia", darkMode: "Modo oscuro", currency: "Moneda",
+                selectCurrency: "Seleccionar moneda", close: "Cerrar", longPressToDelete: "Mantén presionado para eliminar"
+            },
+            it: {
+                signIn: "Accedi", createAccount: "Crea account", noAccount: "Non hai un account?",
+                email: "E-mail", password: "Password", continueWithout: "⏭️ Continua senza accesso",
+                addNewAccount: "Aggiungi account", quickSelect: "🏦 Selezione rapida",
+                customAccount: "✏️ O aggiungi account personalizzato", accountName: "Nome account (es: Binance)",
+                selectType: "Seleziona tipo di immagine...", imageURL: "URL immagine", uploadDevice: "Carica da dispositivo",
+                add: "Aggiungi", cancel: "Annulla", confirmDelete: "Conferma eliminazione",
+                deleteMsg: "Sei sicuro di voler eliminare questo account?", deleteBtn: "Elimina",
+                logout: "Disconnetti", total: "Totale", amountCollected: "Importo raccolto",
+                desiredGoal: "Obiettivo desiderato", localMode: "Modalità locale", cloudSync: "Sincronizzato con il cloud",
+                offlineMode: "Modalità offline", adultContent: "⚠️ Contenuto per adulti non consentito",
+                enterName: "Inserisci il nome dell'account", selectImageType: "Seleziona il tipo di immagine",
+                enterURL: "Inserisci l'URL dell'immagine", selectImage: "Seleziona un'immagine",
+                fillFields: "Compila tutti i campi", passwordLength: "La password deve contenere almeno 6 caratteri",
+                invalidEmail: "E-mail non valida", userDisabled: "Questo account è disabilitato",
+                userNotFound: "Nessun account trovato con questa e-mail", wrongPassword: "Password errata",
+                emailInUse: "Questa e-mail è già in uso", weakPassword: "Password troppo debole",
+                networkError: "Connessione di rete fallita", apiKeyError: "Chiave API non valida",
+                operationNotAllowed: "Accesso e-mail non abilitato in Firebase",
+                logoutConfirm: "Vuoi disconnetterti?", open: "Aperto",
+                locTitle: "Accesso alla posizione", locMessage: "Consentire l'accesso alla tua posizione per impostare automaticamente la lingua appropriata per il tuo paese?",
+                locAllow: "Consenti", locDeny: "Non ora",
+                settings: "Impostazioni", language: "Lingua", selectLanguage: "Seleziona lingua",
+                appearance: "Aspetto", darkMode: "Modalità scura", currency: "Valuta",
+                selectCurrency: "Seleziona valuta", close: "Chiudi", longPressToDelete: "Premi a lungo per eliminare"
+            },
+            de: {
+                signIn: "Anmelden", createAccount: "Konto erstellen", noAccount: "Kein Konto?",
+                email: "E-Mail", password: "Passwort", continueWithout: "⏭️ Ohne Anmeldung fortfahren",
+                addNewAccount: "Konto hinzufügen", quickSelect: "🏦 Schnellauswahl",
+                customAccount: "✏️ Oder benutzerdefiniertes Konto", accountName: "Kontoname (z.B. Binance)",
+                selectType: "Bildtyp auswählen...", imageURL: "Bild-URL", uploadDevice: "Vom Gerät hochladen",
+                add: "Hinzufügen", cancel: "Abbrechen", confirmDelete: "Löschen bestätigen",
+                deleteMsg: "Sind Sie sicher, dass Sie dieses Konto löschen möchten?", deleteBtn: "Löschen",
+                logout: "Abmelden", total: "Gesamt", amountCollected: "Gesammelter Betrag",
+                desiredGoal: "Gewünschtes Ziel", localMode: "Lokaler Modus", cloudSync: "Mit Cloud synchronisiert",
+                offlineMode: "Offline-Modus", adultContent: "⚠️ Erotische Inhalte nicht erlaubt",
+                enterName: "Bitte Kontonamen eingeben", selectImageType: "Bitte Bildtyp auswählen",
+                enterURL: "Bitte Bild-URL eingeben", selectImage: "Bitte Bild auswählen",
+                fillFields: "Bitte alle Felder ausfüllen", passwordLength: "Passwort muss mindestens 6 Zeichen lang sein",
+                invalidEmail: "Ungültige E-Mail", userDisabled: "Dieses Konto ist deaktiviert",
+                userNotFound: "Kein Konto mit dieser E-Mail gefunden", wrongPassword: "Falsches Passwort",
+                emailInUse: "Diese E-Mail wird bereits verwendet", weakPassword: "Passwort zu schwach",
+                networkError: "Netzwerkverbindung fehlgeschlagen", apiKeyError: "Ungültiger API-Schlüssel",
+                operationNotAllowed: "E-Mail-Anmeldung in Firebase nicht aktiviert",
+                logoutConfirm: "Möchten Sie sich abmelden?", open: "Offen",
+                locTitle: "Standortzugriff", locMessage: "Zugriff auf Ihren Standort erlauben, um die passende Sprache für Ihr Land automatisch festzulegen?",
+                locAllow: "Erlauben", locDeny: "Nicht jetzt",
+                settings: "Einstellungen", language: "Sprache", selectLanguage: "Sprache auswählen",
+                appearance: "Erscheinungsbild", darkMode: "Dunkelmodus", currency: "Währung",
+                selectCurrency: "Währung auswählen", close: "Schließen", longPressToDelete: "Lange drücken zum Löschen"
+            },
+            pt: {
+                signIn: "Entrar", createAccount: "Criar conta", noAccount: "Não tem conta?",
+                email: "E-mail", password: "Senha", continueWithout: "⏭️ Continuar sem entrar",
+                addNewAccount: "Adicionar conta", quickSelect: "🏦 Seleção rápida",
+                customAccount: "✏️ Ou adicionar conta personalizada", accountName: "Nome da conta (ex: Binance)",
+                selectType: "Selecione o tipo de imagem...", imageURL: "URL da imagem", uploadDevice: "Enviar do dispositivo",
+                add: "Adicionar", cancel: "Cancelar", confirmDelete: "Confirmar exclusão",
+                deleteMsg: "Tem certeza que deseja excluir esta conta?", deleteBtn: "Excluir",
+                logout: "Sair", total: "Total", amountCollected: "Quantia arrecadada",
+                desiredGoal: "Meta desejada", localMode: "Modo local", cloudSync: "Sincronizado com a nuvem",
+                offlineMode: "Modo offline", adultContent: "⚠️ Conteúdo adulto não permitido",
+                enterName: "Por favor, insira o nome da conta", selectImageType: "Por favor, selecione o tipo de imagem",
+                enterURL: "Por favor, insira a URL da imagem", selectImage: "Por favor, selecione uma imagem",
+                fillFields: "Por favor, preencha todos os campos", passwordLength: "A senha deve ter pelo menos 6 caracteres",
+                invalidEmail: "E-mail inválido", userDisabled: "Esta conta está desativada",
+                userNotFound: "Nenhuma conta encontrada com este e-mail", wrongPassword: "Senha incorreta",
+                emailInUse: "Este e-mail já está em uso", weakPassword: "Senha muito fraca",
+                networkError: "Falha na conexão de rede", apiKeyError: "Chave API inválida",
+                operationNotAllowed: "Login por e-mail não habilitado no Firebase",
+                logoutConfirm: "Deseja sair?", open: "Aberto",
+                locTitle: "Acesso à localização", locMessage: "Permitir acesso à sua localização para definir automaticamente o idioma apropriado para o seu país?",
+                locAllow: "Permitir", locDeny: "Agora não",
+                settings: "Configurações", language: "Idioma", selectLanguage: "Selecionar idioma",
+                appearance: "Aparência", darkMode: "Modo escuro", currency: "Moeda",
+                selectCurrency: "Selecionar moeda", close: "Fechar", longPressToDelete: "Pressione longamente para excluir"
+            },
+            tr: {
+                signIn: "Giriş Yap", createAccount: "Hesap Oluştur", noAccount: "Hesabınız yok mu?",
+                email: "E-posta", password: "Şifre", continueWithout: "⏭️ Giriş yapmadan devam et",
+                addNewAccount: "Yeni Hesap Ekle", quickSelect: "🏦 Hızlı Seçim",
+                customAccount: "✏️ Veya özel hesap ekle", accountName: "Hesap adı (ör: Binance)",
+                selectType: "Görsel türü seçin...", imageURL: "Görsel URL'si", uploadDevice: "Cihazdan yükle",
+                add: "Ekle", cancel: "İptal", confirmDelete: "Silme Onayı",
+                deleteMsg: "Bu hesabı silmek istediğinizden emin misiniz?", deleteBtn: "Sil",
+                logout: "Çıkış", total: "Toplam", amountCollected: "Toplanan miktar",
+                desiredGoal: "Hedeflenen hedef", localMode: "Yerel mod", cloudSync: "Bulutla senkronize",
+                offlineMode: "Çevrimdışı mod", adultContent: "⚠️ Yetişkin içeriğine izin verilmez",
+                enterName: "Lütfen hesap adını girin", selectImageType: "Lütfen görsel türünü seçin",
+                enterURL: "Lütfen görsel URL'sini girin", selectImage: "Lütfen bir görsel seçin",
+                fillFields: "Lütfen tüm alanları doldurun", passwordLength: "Şifre en az 6 karakter olmalıdır",
+                invalidEmail: "Geçersiz e-posta", userDisabled: "Bu hesap devre dışı",
+                userNotFound: "Bu e-posta ile hesap bulunamadı", wrongPassword: "Yanlış şifre",
+                emailInUse: "Bu e-posta zaten kullanılıyor", weakPassword: "Şifre çok zayıf",
+                networkError: "Ağ bağlantısı başarısız", apiKeyError: "Geçersiz API anahtarı",
+                operationNotAllowed: "Firebase'de e-posta girişi etkin değil",
+                logoutConfirm: "Çıkış yapmak istiyor musunuz?", open: "Açık",
+                locTitle: "Konum Erişimi", locMessage: "Ülkeniz için uygun dili otomatik olarak ayarlamak için konumunuza erişime izin verin?",
+                locAllow: "İzin Ver", locDeny: "Şimdi Değil",
+                settings: "Ayarlar", language: "Dil", selectLanguage: "Dil seçin",
+                appearance: "Görünüm", darkMode: "Karanlık mod", currency: "Para birimi",
+                selectCurrency: "Para birimi seçin", close: "Kapat", longPressToDelete: "Silmek için uzun basın"
+            },
+            nl: {
+                signIn: "Inloggen", createAccount: "Account aanmaken", noAccount: "Geen account?",
+                email: "E-mail", password: "Wachtwoord", continueWithout: "⏭️ Doorgaan zonder inloggen",
+                addNewAccount: "Account toevoegen", quickSelect: "🏦 Snelle selectie",
+                customAccount: "✏️ Of aangepast account toevoegen", accountName: "Accountnaam (bijv. Binance)",
+                selectType: "Selecteer afbeeldingstype...", imageURL: "Afbeelding URL", uploadDevice: "Uploaden van apparaat",
+                add: "Toevoegen", cancel: "Annuleren", confirmDelete: "Verwijderen bevestigen",
+                deleteMsg: "Weet u zeker dat u dit account wilt verwijderen?", deleteBtn: "Verwijderen",
+                logout: "Uitloggen", total: "Totaal", amountCollected: "Verzameld bedrag",
+                desiredGoal: "Gewenst doel", localMode: "Lokale modus", cloudSync: "Gesynchroniseerd met cloud",
+                offlineMode: "Offline modus", adultContent: "⚠️ Volwassen inhoud niet toegestaan",
+                enterName: "Voer accountnaam in", selectImageType: "Selecteer afbeeldingstype",
+                enterURL: "Voer afbeelding URL in", selectImage: "Selecteer een afbeelding",
+                fillFields: "Vul alle velden in", passwordLength: "Wachtwoord moet minimaal 6 tekens bevatten",
+                invalidEmail: "Ongeldige e-mail", userDisabled: "Dit account is uitgeschakeld",
+                userNotFound: "Geen account gevonden met dit e-mailadres", wrongPassword: "Onjuist wachtwoord",
+                emailInUse: "Dit e-mailadres is al in gebruik", weakPassword: "Wachtwoord te zwak",
+                networkError: "Netwerkverbinding mislukt", apiKeyError: "Ongeldige API-sleutel",
+                operationNotAllowed: "E-mail inloggen niet ingeschakeld in Firebase",
+                logoutConfirm: "Weet u zeker dat u wilt uitloggen?", open: "Open",
+                locTitle: "Locatietoegang", locMessage: "Toegang tot uw locatie toestaan om automatisch de juiste taal voor uw land in te stellen?",
+                locAllow: "Toestaan", locDeny: "Niet nu",
+                settings: "Instellingen", language: "Taal", selectLanguage: "Selecteer taal",
+                appearance: "Weergave", darkMode: "Donkere modus", currency: "Valuta",
+                selectCurrency: "Selecteer valuta", close: "Sluiten", longPressToDelete: "Lang indrukken om te verwijderen"
+            },
+            pl: {
+                signIn: "Zaloguj się", createAccount: "Utwórz konto", noAccount: "Nie masz konta?",
+                email: "E-mail", password: "Hasło", continueWithout: "⏭️ Kontynuuj bez logowania",
+                addNewAccount: "Dodaj konto", quickSelect: "🏦 Szybki wybór",
+                customAccount: "✏️ Lub dodaj niestandardowe konto", accountName: "Nazwa konta (np. Binance)",
+                selectType: "Wybierz typ obrazu...", imageURL: "URL obrazu", uploadDevice: "Prześlij z urządzenia",
+                add: "Dodaj", cancel: "Anuluj", confirmDelete: "Potwierdź usunięcie",
+                deleteMsg: "Czy na pewno chcesz usunąć to konto?", deleteBtn: "Usuń",
+                logout: "Wyloguj", total: "Suma", amountCollected: "Zebrana kwota",
+                desiredGoal: "Pożądany cel", localMode: "Tryb lokalny", cloudSync: "Zsynchronizowane z chmurą",
+                offlineMode: "Tryb offline", adultContent: "⚠️ Treści dla dorosłych niedozwolone",
+                enterName: "Wprowadź nazwę konta", selectImageType: "Wybierz typ obrazu",
+                enterURL: "Wprowadź URL obrazu", selectImage: "Wybierz obraz",
+                fillFields: "Wypełnij wszystkie pola", passwordLength: "Hasło musi mieć co najmniej 6 znaków",
+                invalidEmail: "Nieprawidłowy e-mail", userDisabled: "To konto jest wyłączone",
+                userNotFound: "Nie znaleziono konta z tym e-mailem", wrongPassword: "Nieprawidłowe hasło",
+                emailInUse: "Ten e-mail jest już w użyciu", weakPassword: "Hasło zbyt słabe",
+                networkError: "Błąd połączenia sieciowego", apiKeyError: "Nieprawidłowy klucz API",
+                operationNotAllowed: "Logowanie e-mail nie jest włączone w Firebase",
+                logoutConfirm: "Czy chcesz się wylogować?", open: "Otwarte",
+                locTitle: "Dostęp do lokalizacji", locMessage: "Zezwolić na dostęp do lokalizacji, aby automatycznie ustawić odpowiedni język dla Twojego kraju?",
+                locAllow: "Zezwól", locDeny: "Nie teraz",
+                settings: "Ustawienia", language: "Język", selectLanguage: "Wybierz język",
+                appearance: "Wygląd", darkMode: "Tryb ciemny", currency: "Waluta",
+                selectCurrency: "Wybierz walutę", close: "Zamknij", longPressToDelete: "Przytrzymaj, aby usunąć"
+            }
+        };
+
+        // Currency symbols and formatting
+        const CURRENCIES = {
+            EUR: { symbol: '€', flag: '🇪🇺', name: 'Euro' },
+            USD: { symbol: '$', flag: '🇺🇸', name: 'US Dollar' },
+            GBP: { symbol: '£', flag: '🇬🇧', name: 'British Pound' },
+            JPY: { symbol: '¥', flag: '🇯🇵', name: 'Japanese Yen' },
+            EGP: { symbol: 'E£', flag: '🇪🇬', name: 'Egyptian Pound' },
+            SAR: { symbol: '﷼', flag: '🇸🇦', name: 'Saudi Riyal' },
+            AED: { symbol: 'د.إ', flag: '🇦🇪', name: 'UAE Dirham' },
+            TRY: { symbol: '₺', flag: '🇹🇷', name: 'Turkish Lira' },
+            INR: { symbol: '₹', flag: '🇮🇳', name: 'Indian Rupee' },
+            CNY: { symbol: '¥', flag: '🇨🇳', name: 'Chinese Yuan' },
+            KRW: { symbol: '₩', flag: '🇰🇷', name: 'South Korean Won' },
+            RUB: { symbol: '₽', flag: '🇷🇺', name: 'Russian Ruble' },
+            BRL: { symbol: 'R$', flag: '🇧🇷', name: 'Brazilian Real' },
+            CAD: { symbol: 'C$', flag: '🇨🇦', name: 'Canadian Dollar' },
+            AUD: { symbol: 'A$', flag: '🇦🇺', name: 'Australian Dollar' },
+            CHF: { symbol: 'Fr', flag: '🇨🇭', name: 'Swiss Franc' },
+            SEK: { symbol: 'kr', flag: '🇸🇪', name: 'Swedish Krona' },
+            NOK: { symbol: 'kr', flag: '🇳🇴', name: 'Norwegian Krone' },
+            DKK: { symbol: 'kr', flag: '🇩🇰', name: 'Danish Krone' },
+            PLN: { symbol: 'zł', flag: '🇵🇱', name: 'Polish Zloty' }
+        };
+
+        let currentCurrency = localStorage.getItem('currency') || 'EUR';
+        let currentLang = localStorage.getItem('language') || 'en';
+        let locationPermissionAsked = localStorage.getItem('locationAsked') === 'true';
+
+        function getCurrencySymbol() {
+            return CURRENCIES[currentCurrency]?.symbol || '€';
+        }
+
+        function formatAmount(amount) {
+            const symbol = getCurrencySymbol();
+            if (currentCurrency === 'JPY' || currentCurrency === 'KRW') {
+                return symbol + Math.round(amount).toLocaleString('en-US');
+            }
+            return symbol + (amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function detectLanguageFromBrowser() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang) {
+                const langCode = browserLang.split('-')[0].toLowerCase();
+                const supported = ['en', 'ar', 'fr', 'es', 'it', 'de', 'pt', 'tr', 'nl', 'pl'];
+                if (supported.includes(langCode)) return langCode;
+            }
+            try {
+                const locale = new Intl.DateTimeFormat().resolvedOptions().locale;
+                const langCode = locale.split('-')[0].toLowerCase();
+                const supported = ['en', 'ar', 'fr', 'es', 'it', 'de', 'pt', 'tr', 'nl', 'pl'];
+                if (supported.includes(langCode)) return langCode;
+            } catch(e) {}
+            return 'en';
+        }
+
+        function detectLanguageFromCountry(countryCode) {
+            if (!countryCode) return null;
+            const lang = COUNTRY_LANG_MAP[countryCode.toUpperCase()];
+            return lang || null;
+        }
+
+        function askForLocation() {
+            if (locationPermissionAsked) return;
+            document.getElementById('locationModal').classList.add('active');
+            document.getElementById('locTitle').textContent = t('locTitle');
+            document.getElementById('locMessage').textContent = t('locMessage');
+            document.getElementById('btnAllow').textContent = t('locAllow');
+            document.getElementById('btnDeny').textContent = t('locDeny');
+        }
+
+        function allowLocation() {
+            localStorage.setItem('locationAsked', 'true');
+            document.getElementById('locationModal').classList.remove('active');
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`)
+                            .then(res => res.json())
+                            .then(data => {
+                                const countryCode = data.countryCode;
+                                const detectedLang = detectLanguageFromCountry(countryCode);
+                                if (detectedLang && detectedLang !== currentLang) {
+                                    currentLang = detectedLang;
+                                    localStorage.setItem('language', currentLang);
+                                    document.getElementById('langSelect').value = currentLang;
+                                    document.getElementById('settingsLangSelect').value = currentLang;
+                                    applyTranslations();
+                                }
+                            })
+                            .catch(() => {
+                                const detectedLang = detectLanguageFromBrowser();
+                                if (detectedLang !== currentLang) {
+                                    currentLang = detectedLang;
+                                    localStorage.setItem('language', currentLang);
+                                    document.getElementById('langSelect').value = currentLang;
+                                    document.getElementById('settingsLangSelect').value = currentLang;
+                                    applyTranslations();
+                                }
+                            });
+                    },
+                    (error) => {
+                        const detectedLang = detectLanguageFromBrowser();
+                        if (detectedLang !== currentLang) {
+                            currentLang = detectedLang;
+                            localStorage.setItem('language', currentLang);
+                            document.getElementById('langSelect').value = currentLang;
+                            document.getElementById('settingsLangSelect').value = currentLang;
+                            applyTranslations();
+                        }
+                    }
+                );
+            } else {
+                const detectedLang = detectLanguageFromBrowser();
+                if (detectedLang !== currentLang) {
+                    currentLang = detectedLang;
+                    localStorage.setItem('language', currentLang);
+                    document.getElementById('langSelect').value = currentLang;
+                    document.getElementById('settingsLangSelect').value = currentLang;
+                    applyTranslations();
+                }
+            }
+        }
+
+        function denyLocation() {
+            localStorage.setItem('locationAsked', 'true');
+            document.getElementById('locationModal').classList.remove('active');
+            const detectedLang = detectLanguageFromBrowser();
+            if (detectedLang !== currentLang) {
+                currentLang = detectedLang;
+                localStorage.setItem('language', currentLang);
+                document.getElementById('langSelect').value = currentLang;
+                document.getElementById('settingsLangSelect').value = currentLang;
+                applyTranslations();
+            }
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            document.getElementById('langSelect').value = lang;
+            document.getElementById('settingsLangSelect').value = lang;
+            applyTranslations();
+        }
+
+        function changeCurrency(currency) {
+            currentCurrency = currency;
+            localStorage.setItem('currency', currency);
+            document.getElementById('currencySelect').value = currency;
+            refreshDisplay();
+            renderAccounts();
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+            updateSettingsUI();
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function toggleThemeFromSettings() {
+            toggleTheme();
+            updateSettingsUI();
+        }
+
+        function updateSettingsUI() {
+            const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+            const toggle = document.getElementById('themeToggle');
+            if (isDark) toggle.classList.add('active');
+            else toggle.classList.remove('active');
+        }
+
+        function t(key) {
+            return TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key];
+        }
+
+        function applyTranslations() {
+            document.getElementById('loginTitle').textContent = isRegisterMode ? t('createAccount') : t('signIn');
+            document.getElementById('emailInput').placeholder = t('email');
+            document.getElementById('passwordInput').placeholder = t('password');
+            document.getElementById('authBtn').textContent = isRegisterMode ? t('createAccount') : t('signIn');
+            document.getElementById('switchText').textContent = isRegisterMode ? t('noAccount') : t('noAccount');
+            document.getElementById('switchLink').textContent = isRegisterMode ? ' ' + t('signIn') : ' ' + t('createAccount');
+            document.querySelector('.skip-login button').textContent = t('continueWithout');
+            document.getElementById('authFloatBtn').textContent = '🔐 ' + t('signIn');
+            document.getElementById('addModalTitle').textContent = t('addNewAccount');
+            document.getElementById('presetSectionTitle').textContent = t('quickSelect');
+            document.getElementById('customToggle').textContent = t('customAccount');
+            document.getElementById('newAccountName').placeholder = t('accountName');
+            document.getElementById('newAccountType').options[0].text = t('selectType');
+            document.getElementById('newAccountType').options[1].text = t('imageURL');
+            document.getElementById('newAccountType').options[2].text = t('uploadDevice');
+            document.getElementById('newAccountImage').placeholder = t('imageURL');
+            document.getElementById('btnAdd').textContent = t('add');
+            document.getElementById('btnCancel').textContent = t('cancel');
+            document.getElementById('deleteTitle').textContent = t('confirmDelete');
+            document.getElementById('deleteMessage').textContent = t('deleteMsg');
+            document.getElementById('btnDelete').textContent = t('deleteBtn');
+            document.getElementById('btnCancelDelete').textContent = t('cancel');
+            document.getElementById('btnLogout').textContent = t('logout');
+            document.getElementById('appTitle').textContent = t('total');
+            document.getElementById('descCollected').textContent = t('amountCollected');
+            document.getElementById('addBtnText').textContent = t('addNewAccount');
+            
+            const savedGoal = localStorage.getItem('goalValue') || '50K ' + getCurrencySymbol();
+            document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + savedGoal + ' ]';
+            
+            // Settings translations
+            document.getElementById('settingsTitle').textContent = t('settings');
+            document.getElementById('langSectionTitle').textContent = '🌐 ' + t('language');
+            document.getElementById('langLabel').textContent = t('selectLanguage');
+            document.getElementById('themeSectionTitle').textContent = '🎨 ' + t('appearance');
+            document.getElementById('darkModeLabel').textContent = t('darkMode');
+            document.getElementById('currencySectionTitle').textContent = '💰 ' + t('currency');
+            document.getElementById('currencyLabel').textContent = t('selectCurrency');
+            document.getElementById('btnCloseSettings').textContent = t('close');
+            
+            updateSyncStatusText();
+            renderAccounts();
+        }
+
+        function updateSyncStatusText() {
+            const el = document.getElementById('syncStatus');
+            const status = el.classList.contains('offline') ? 'offline' : el.classList.contains('local-only') ? 'local' : 'online';
+            if (status === 'online') el.innerHTML = '<span class="dot"></span> ' + t('cloudSync');
+            else if (status === 'offline') el.innerHTML = '<span class="dot"></span> ' + t('offlineMode');
+            else el.innerHTML = '<span class="dot"></span> ' + t('localMode');
+        }
+
+        // Country to language mapping
+        const COUNTRY_LANG_MAP = {
+            'SA': 'ar', 'AE': 'ar', 'EG': 'ar', 'QA': 'ar', 'KW': 'ar', 'OM': 'ar', 'BH': 'ar', 'JO': 'ar', 'LB': 'ar', 'IQ': 'ar', 'YE': 'ar', 'SY': 'ar', 'DZ': 'ar', 'MA': 'ar', 'TN': 'ar', 'LY': 'ar', 'SD': 'ar', 'MR': 'ar', 'SO': 'ar', 'PS': 'ar',
+            'FR': 'fr', 'BE': 'fr', 'CH': 'fr', 'LU': 'fr', 'MC': 'fr', 'CI': 'fr', 'SN': 'fr', 'ML': 'fr', 'BF': 'fr', 'NE': 'fr', 'TG': 'fr', 'BJ': 'fr', 'GA': 'fr', 'CM': 'fr', 'CF': 'fr', 'TD': 'fr', 'CG': 'fr', 'CD': 'fr', 'GN': 'fr', 'BI': 'fr', 'DJ': 'fr', 'RW': 'fr', 'MG': 'fr', 'KM': 'fr', 'MU': 'fr', 'SC': 'fr',
+            'ES': 'es', 'MX': 'es', 'CO': 'es', 'AR': 'es', 'PE': 'es', 'VE': 'es', 'CL': 'es', 'EC': 'es', 'GT': 'es', 'CU': 'es', 'BO': 'es', 'DO': 'es', 'HN': 'es', 'PY': 'es', 'SV': 'es', 'NI': 'es', 'CR': 'es', 'PA': 'es', 'UY': 'es', 'GQ': 'es', 'PR': 'es',
+            'IT': 'it', 'SM': 'it', 'VA': 'it', 'CH': 'it',
+            'DE': 'de', 'AT': 'de', 'CH': 'de', 'LI': 'de', 'LU': 'de',
+            'PT': 'pt', 'BR': 'pt', 'AO': 'pt', 'MZ': 'pt', 'GW': 'pt', 'CV': 'pt', 'ST': 'pt', 'TL': 'pt',
+            'TR': 'tr', 'CY': 'tr',
+            'NL': 'nl', 'BE': 'nl', 'SR': 'nl', 'AW': 'nl', 'CW': 'nl', 'SX': 'nl',
+            'PL': 'pl'
+        };
+
+        // ═══════════════════════════════════════════════
+        // FIREBASE CONFIG
+        // ═══════════════════════════════════════════════
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMaYPkNp49zVrNeYrVwtV02cPQCnU8tU8",
+            authDomain: "my-money-daa70.firebaseapp.com",
+            databaseURL: "https://my-money-daa70-default-rtdb.firebaseio.com",
+            projectId: "my-money-daa70",
+            storageBucket: "my-money-daa70.firebasestorage.app",
+            messagingSenderId: "491139682486",
+            appId: "1:491139682486:web:2cf03c83d4e83fadc41617"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentUser = null, isRegisterMode = false, isLocalMode = false;
+        let accounts = [], deleteTargetId = null, selectedFile = null;
+        let customMode = false;
+
+        const PRESETS = [
+            { name: 'Binance', image: 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png' },
+            { name: 'Coinbase', image: 'https://cryptologos.cc/logos/coinbase-coin-logo.png' },
+            { name: 'Stripe', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png' },
+            { name: 'Skrill', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Skrill_logo.svg/2560px-Skrill_logo.svg.png' },
+            { name: 'Neteller', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Neteller_logo.svg/2560px-Neteller_logo.svg.png' },
+            { name: 'Payeer', image: 'https://payeer.com/images/logo.png' },
+            { name: 'Advcash', image: 'https://advcash.com/static/images/logo.svg' },
+            { name: 'Venmo', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Venmo_Logo.svg/2560px-Venmo_Logo.svg.png' },
+            { name: 'Zelle', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Zelle_logo.svg/2560px-Zelle_logo.svg.png' }
+        ];
+
+        const DEFAULT_ACCOUNTS = [
+            {id: 1, name: 'PayPal', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png', amount: 0},
+            {id: 2, name: 'Payoneer', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Payoneer_logo.svg/2560px-Payoneer_logo.svg.png', amount: 0},
+            {id: 3, name: 'Wise', image: 'https://wise.com/public-resources/assets/logos/wise-personal/logo.svg', amount: 0},
+            {id: 4, name: 'Chime', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Chime_logo.svg/2560px-Chime_logo.svg.png', amount: 0},
+            {id: 5, name: 'Nubank', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Nubank_logo.svg/2560px-Nubank_logo.svg.png', amount: 0},
+            {id: 6, name: 'Monzo', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Monzo_logo.svg/2560px-Monzo_logo.svg.png', amount: 0},
+            {id: 7, name: 'Cash App', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Square_Cash_app_logo.svg/1200px-Square_Cash_app_logo.svg.png', amount: 0}
+        ];
+
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+        function toggleTheme() {
+            const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+            const nxt = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', nxt);
+            localStorage.setItem('theme', nxt);
+            updateThemeIcon(nxt);
+        }
+        function updateThemeIcon(t) { document.getElementById('themeIcon').textContent = t === 'dark' ? '☀️' : '🌙'; }
+
+        function showLogin() { document.getElementById('loginOverlay').classList.add('active'); }
+        function hideLogin() { document.getElementById('loginOverlay').classList.remove('active'); }
+
+        function toggleMode() {
+            isRegisterMode = !isRegisterMode;
+            applyTranslations();
+        }
+        function showError(msg) { document.getElementById('errorMsg').textContent = msg; }
+
+        function handleAuth() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) { showError(t('fillFields')); return; }
+            if (password.length < 6) { showError(t('passwordLength')); return; }
+            const btn = document.getElementById('authBtn');
+            btn.textContent = '...'; btn.disabled = true;
+            if (isRegisterMode) {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(() => btn.disabled = false)
+                    .catch(err => { showError(mapError(err.code)); btn.textContent = t('createAccount'); btn.disabled = false; });
+            } else {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => btn.disabled = false)
+                    .catch(err => { showError(mapError(err.code)); btn.textContent = t('signIn'); btn.disabled = false; });
+            }
+        }
+
+        function skipLogin() {
+            isLocalMode = true;
+            localStorage.setItem('skippedLogin', 'true');
+            hideLogin();
+            document.getElementById('authFloatBtn').classList.add('visible');
+            document.getElementById('userBar').classList.remove('active');
+            showSyncStatus('local');
+            loadLocalData();
+        }
+
+        function mapError(code) {
+            const errors = {
+                'auth/invalid-email': t('invalidEmail'),
+                'auth/user-disabled': t('userDisabled'),
+                'auth/user-not-found': t('userNotFound'),
+                'auth/wrong-password': t('wrongPassword'),
+                'auth/email-already-in-use': t('emailInUse'),
+                'auth/weak-password': t('weakPassword'),
+                'auth/network-request-failed': t('networkError'),
+                'auth/invalid-api-key': t('apiKeyError'),
+                'auth/operation-not-allowed': t('operationNotAllowed')
+            };
+            return errors[code] || 'Error: ' + code;
+        }
+
+        function logout() {
+            if (!confirm(t('logoutConfirm'))) return;
+            if (isLocalMode) {
+                isLocalMode = false;
+                localStorage.removeItem('skippedLogin');
+                document.getElementById('userBar').classList.remove('active');
+                document.getElementById('authFloatBtn').classList.remove('visible');
+                showLogin();
+            } else {
+                auth.signOut();
+            }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user; isLocalMode = false;
+                localStorage.removeItem('skippedLogin');
+                hideLogin();
+                document.getElementById('authFloatBtn').classList.remove('visible');
+                document.getElementById('userBar').classList.add('active');
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+                loadFromCloud();
+            } else {
+                currentUser = null;
+                document.getElementById('userBar').classList.remove('active');
+                document.getElementById('emailInput').value = '';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('errorMsg').textContent = '';
+                document.getElementById('authBtn').textContent = t('signIn');
+                document.getElementById('authBtn').disabled = false;
+            }
+        });
+
+        function editGoal() {
+            const goalText = document.getElementById('goalText');
+            const currentText = goalText.textContent;
+            const match = currentText.match(/\\[\\s*(.+?)\\s*\\]/);
+            const currentGoal = match ? match[1] : '50K ' + getCurrencySymbol();
+            const input = document.createElement('input');
+            input.type = 'text'; input.value = currentGoal; input.className = 'goal-input';
+            goalText.innerHTML = t('desiredGoal') + ' [ '; goalText.appendChild(input);
+            const closeBracket = document.createTextNode(' ]'); goalText.appendChild(closeBracket);
+            input.focus(); input.select();
+            const save = () => {
+                const val = input.value.trim() || '50K ' + getCurrencySymbol();
+                goalText.innerHTML = t('desiredGoal') + ' [ ' + val + ' ]';
+                saveToStorage('goalValue', val);
+            };
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+            customMode = false;
+            document.getElementById('customForm').style.display = 'none';
+            document.querySelector('.custom-toggle').style.display = 'inline-block';
+            renderPresets();
+            resetCustomForm();
+        }
+        function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
+
+        function renderPresets() {
+            const grid = document.getElementById('presetGrid');
+            grid.innerHTML = '';
+            PRESETS.forEach(preset => {
+                const div = document.createElement('div');
+                div.className = 'preset-item';
+                const isAdded = accounts.some(a => a.name === preset.name);
+                if (isAdded) div.classList.add('added');
+                div.innerHTML = `<img src="${preset.image}" alt="${preset.name}" onerror="this.src='https://via.placeholder.com/40?text=${preset.name.charAt(0)}'"><span>${preset.name}</span>`;
+                if (!isAdded) div.onclick = () => addPresetAccount(preset);
+                grid.appendChild(div);
+            });
+        }
+
+        function addPresetAccount(preset) {
+            const newAccount = { id: Date.now(), name: preset.name, image: preset.image, amount: 0 };
+            accounts.push(newAccount);
+            renderAccounts(); saveAccounts(); closeAddModal();
+        }
+
+        function showCustomForm() {
+            customMode = true;
+            document.getElementById('customForm').style.display = 'block';
+            document.querySelector('.custom-toggle').style.display = 'none';
+        }
+        function resetCustomForm() {
+            document.getElementById('newAccountName').value = '';
+            document.getElementById('newAccountType').value = '';
+            document.getElementById('newAccountImage').value = '';
+            document.getElementById('newAccountImage').style.display = 'none';
+            document.getElementById('newAccountFile').style.display = 'none';
+            document.getElementById('imagePreview').classList.remove('active');
+            document.getElementById('imageError').classList.remove('active');
+            selectedFile = null;
+        }
+        function handleTypeChange() {
+            const type = document.getElementById('newAccountType').value;
+            document.getElementById('newAccountImage').style.display = type === 'url' ? 'block' : 'none';
+            document.getElementById('newAccountFile').style.display = type === 'upload' ? 'block' : 'none';
+        }
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { showModalError(t('selectImage')); return; }
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreview').classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+        function addNewAccount() {
+            if (!customMode) { showModalError(t('customAccount')); return; }
+            const name = document.getElementById('newAccountName').value.trim();
+            const type = document.getElementById('newAccountType').value;
+            const imgUrl = document.getElementById('newAccountImage').value.trim();
+            if (!name) { showModalError(t('enterName')); return; }
+            if (!type) { showModalError(t('selectImageType')); return; }
+            let image = '';
+            if (type === 'url') {
+                if (!imgUrl) { showModalError(t('enterURL')); return; }
+                const blocked = ['porn', 'xxx', 'sex', 'nude', 'adult', 'redtube', 'xvideos', 'xhamster', 'xnxx', 'youporn'];
+                if (blocked.some(d => imgUrl.toLowerCase().includes(d))) { showModalError(t('adultContent')); return; }
+                image = imgUrl;
+            } else if (type === 'upload') {
+                if (!selectedFile) { showModalError(t('selectImage')); return; }
+                image = document.getElementById('imagePreview').src;
+            }
+            const newAccount = { id: Date.now(), name: name, image: image, amount: 0 };
+            accounts.push(newAccount);
+            renderAccounts(); saveAccounts(); closeAddModal();
+        }
+        function showModalError(msg) {
+            const err = document.getElementById('imageError');
+            err.textContent = msg; err.classList.add('active');
+            setTimeout(() => err.classList.remove('active'), 3000);
+        }
+
+        function askDelete(id) {
+            const acc = accounts.find(a => a.id === id);
+            if (!acc) return;
+            deleteTargetId = id;
+            document.getElementById('deleteMessage').textContent = t('deleteMsg');
+            document.getElementById('deleteConfirm').classList.add('active');
+        }
+        function confirmDelete() {
+            if (deleteTargetId) {
+                accounts = accounts.filter(a => a.id !== deleteTargetId);
+                renderAccounts(); saveAccounts(); updateTotal();
+            }
+            cancelDelete();
+        }
+        function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirm').classList.remove('active'); }
+
+        // Long press handling
+        let longPressTimer;
+        let isLongPress = false;
+        const LONG_PRESS_DURATION = 600; // ms
+
+        function setupLongPress(element, id) {
+            const startLongPress = (e) => {
+                if (e.target.closest('.amount-edit')) return;
+                isLongPress = false;
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    // Visual feedback
+                    element.style.transform = 'scale(0.98)';
+                    element.style.opacity = '0.8';
+                    setTimeout(() => {
+                        element.style.transform = '';
+                        element.style.opacity = '';
+                        askDelete(id);
+                    }, 150);
+                }, LONG_PRESS_DURATION);
+            };
+
+            const cancelLongPress = () => {
+                clearTimeout(longPressTimer);
+            };
+
+            element.addEventListener('mousedown', startLongPress);
+            element.addEventListener('touchstart', startLongPress, {passive: true});
+            element.addEventListener('mouseup', cancelLongPress);
+            element.addEventListener('mouseleave', cancelLongPress);
+            element.addEventListener('touchend', cancelLongPress);
+            element.addEventListener('touchmove', cancelLongPress);
+        }
+
+        function renderAccounts() {
+            const list = document.getElementById('accountsList');
+            list.innerHTML = '';
+            accounts.forEach((acc) => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.setAttribute('data-id', acc.id);
+                
+                // Setup long press for delete
+                setupLongPress(item, acc.id);
+                
+                // Click handler - just shows it's active/open
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.amount-edit')) return;
+                    if (isLongPress) {
+                        isLongPress = false;
+                        return;
+                    }
+                    // Single click - could open account details or just show status
+                    const statusEl = item.querySelector('.status');
+                    if (statusEl) {
+                        statusEl.style.color = 'var(--warning)';
+                        statusEl.textContent = '● ' + t('open');
+                        setTimeout(() => {
+                            statusEl.style.color = 'var(--success)';
+                            statusEl.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:var(--success);border-radius:50%;margin-right:5px;"></span>` + t('open');
+                        }, 1000);
+                    }
+                });
+                
+                const formatted = formatAmount(acc.amount);
+                item.innerHTML = `
+                    <img class="logo" src="${acc.image}" alt="${acc.name}" onerror="this.src='https://via.placeholder.com/60/3B3B3B/FFFFFF?text=${acc.name.charAt(0)}'">
+                    <div class="details"><div class="name">${acc.name}</div><div class="status"><span style="display:inline-block;width:8px;height:8px;background:var(--success);border-radius:50%;margin-right:5px;"></span>${t('open')}</div></div>
+                    <div class="amount-container"><div class="amount" id="amount-${acc.id}">${formatted}<img src="https://files.catbox.moe/ddgcxc.png" class="amount-edit" onclick="editAmount(${acc.id})"></div></div>
+                    <div class="long-press-indicator">${t('longPressToDelete')}</div>`;
+                list.appendChild(item);
+            });
+        }
+
+        function saveToStorage(key, value) {
+            localStorage.setItem(key, value);
+            localStorage.setItem('lastLocalUpdate', Date.now().toString());
+            if (!isLocalMode && currentUser) saveToCloud();
+        }
+        function saveAccounts() {
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('lastLocalUpdate', Date.now().toString());
+            if (!isLocalMode && currentUser) saveToCloud();
+        }
+
+        function loadLocalData() {
+            const saved = localStorage.getItem('accounts');
+            if (saved) accounts = JSON.parse(saved);
+            else accounts = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
+            renderAccounts(); refreshDisplay();
+            const savedGoal = localStorage.getItem('goalValue');
+            if (savedGoal) document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + savedGoal + ' ]';
+        }
+
+        function saveToCloud() {
+            if (!currentUser) return;
+            const data = {
+                totalAmount: localStorage.getItem('totalAmount') || '0',
+                accounts: accounts,
+                goalValue: localStorage.getItem('goalValue') || '50K ' + getCurrencySymbol(),
+                currency: currentCurrency,
+                updatedAt: Date.now()
+            };
+            db.ref('users/' + currentUser.uid + '/earnings').set(data)
+                .then(() => showSyncStatus('online'))
+                .catch(() => showSyncStatus('offline'));
+        }
+        function loadFromCloud() {
+            if (!currentUser) return;
+            db.ref('users/' + currentUser.uid + '/earnings').once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const cloudTime = data.updatedAt || 0;
+                        const localTime = parseInt(localStorage.getItem('lastLocalUpdate') || '0');
+                        if (cloudTime >= localTime) {
+                            if (data.accounts) accounts = data.accounts;
+                            if (data.totalAmount) localStorage.setItem('totalAmount', data.totalAmount);
+                            if (data.goalValue) localStorage.setItem('goalValue', data.goalValue);
+                            if (data.currency) {
+                                currentCurrency = data.currency;
+                                localStorage.setItem('currency', data.currency);
+                            }
+                            localStorage.setItem('accounts', JSON.stringify(accounts));
+                            localStorage.setItem('lastLocalUpdate', Date.now().toString());
+                        } else { saveToCloud(); }
+                        renderAccounts(); refreshDisplay();
+                        if (data.goalValue) document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + data.goalValue + ' ]';
+                    } else { loadLocalData(); saveToCloud(); }
+                    showSyncStatus('online');
+                })
+                .catch(() => { loadLocalData(); showSyncStatus('offline'); });
+        }
+        function showSyncStatus(status) {
+            const el = document.getElementById('syncStatus');
+            el.className = 'sync-status' + (status === 'offline' ? ' offline' : status === 'local' ? ' local-only' : '');
+            updateSyncStatusText();
+        }
+
+        function refreshDisplay() {
+            const savedTotal = localStorage.getItem('totalAmount');
+            if (savedTotal) {
+                const val = parseFloat(savedTotal) || 0;
+                document.getElementById('total-amount').innerHTML = formatAmount(val) +
+                    '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
+            }
+            renderAccounts();
+        }
+
         function editTotal() {
             const totalEl = document.getElementById('total-amount');
             const current = totalEl.textContent.trim();
+            const symbol = getCurrencySymbol();
             const input = document.createElement('input');
-            input.type = 'text';
-            input.value = current.replace('$', '').replace(',', '');
-            input.className = 'edit-input';
-            totalEl.innerHTML = '$';
-            totalEl.appendChild(input);
-            input.focus();
-            input.select();
-
+            input.type = 'text'; input.value = current.replace(symbol, '').replace(/,/g, ''); input.className = 'edit-input';
+            totalEl.innerHTML = symbol; totalEl.appendChild(input); input.focus(); input.select();
             const save = () => {
                 let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
-                totalEl.innerHTML = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                totalEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">';
+                const formatted = formatAmount(val);
+                totalEl.innerHTML = formatted + '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
+                saveToStorage('totalAmount', val.toString());
             };
-
             input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') input.blur();
-            });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
         }
 
         function editAmount(id) {
             const amountEl = document.getElementById('amount-' + id);
             const current = amountEl.textContent.trim();
+            const symbol = getCurrencySymbol();
             const input = document.createElement('input');
-            input.type = 'text';
-            input.value = current.replace('$', '').replace(',', '');
-            input.className = 'edit-input';
-            amountEl.innerHTML = '$';
-            amountEl.appendChild(input);
-            input.focus();
-            input.select();
-
+            input.type = 'text'; input.value = current.replace(symbol, '').replace(/,/g, ''); input.className = 'edit-input';
+            amountEl.innerHTML = symbol; amountEl.appendChild(input); input.focus(); input.select();
             const save = () => {
                 let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
-                amountEl.innerHTML = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                amountEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="amount-edit" onclick="editAmount(' + id + ')">';
+                const formatted = formatAmount(val);
+                amountEl.innerHTML = formatted + '<img src="https://files.catbox.moe/ddgcxc.png" class="amount-edit" onclick="editAmount(' + id + ')">';
+                const acc = accounts.find(a => a.id === id);
+                if (acc) { acc.amount = val; saveAccounts(); }
                 updateTotal();
             };
-
             input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') input.blur();
-            });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
         }
 
         function updateTotal() {
             let sum = 0;
-            for (let i = 1; i <= 6; i++) {
-                const text = document.getElementById('amount-' + i).textContent.trim();
-                const val = parseFloat(text.replace('$', '').replace(',', '')) || 0;
-                sum += val;
-            }
+            accounts.forEach(acc => sum += acc.amount || 0);
             const totalEl = document.getElementById('total-amount');
-            totalEl.innerHTML = '$' + sum.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            totalEl.innerHTML += '<img src="https://www.shutterstock.com/image-vector/edit-pencil-icon-black-circle-260nw-2687521077.jpg" class="edit-icon" onclick="editTotal()">';
+            const formatted = formatAmount(sum);
+            totalEl.innerHTML = formatted + '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
+            saveToStorage('totalAmount', sum.toString());
         }
+
+        window.onload = function() {
+            initTheme();
+            
+            // Currency setup
+            document.getElementById('currencySelect').value = currentCurrency;
+            
+            // Language detection and setup
+            const savedLang = localStorage.getItem('language');
+            if (!savedLang) {
+                const browserLang = detectLanguageFromBrowser();
+                currentLang = browserLang;
+                localStorage.setItem('language', currentLang);
+                document.getElementById('langSelect').value = currentLang;
+                document.getElementById('settingsLangSelect').value = currentLang;
+                
+                if (!locationPermissionAsked) {
+                    setTimeout(() => askForLocation(), 1000);
+                }
+            } else {
+                currentLang = savedLang;
+                document.getElementById('langSelect').value = currentLang;
+                document.getElementById('settingsLangSelect').value = currentLang;
+            }
+            
+            applyTranslations();
+            updateSettingsUI();
+            
+            const skipped = localStorage.getItem('skippedLogin');
+            if (skipped === 'true') {
+                isLocalMode = true;
+                document.getElementById('authFloatBtn').classList.add('visible');
+                document.getElementById('userBar').classList.remove('active');
+                showSyncStatus('local');
+                loadLocalData();
+            } else {
+                showLogin();
+            }
+        };
     </script>
 </body>
 </html>
