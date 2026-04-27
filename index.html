@@ -1,1381 +1,7555 @@
 <!DOCTYPE html>
+
+
+
 <html lang="en">
+
+
+
 <head>
+
+
+
     <meta charset="UTF-8">
+
+
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earnings</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+
+
+    <title>Genki - Modern Ghost Theme</title>
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+
+
+<link href="favicon.png" type="image/x-icon"rel="icon" />
+
+
+
+  <!-- للـ Favicon -->
+
+
+
+<link rel="icon" href="favicon.png" type="image/png">
+
+
+
+
+
+
+
+<!-- للـ Manifest -->
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
     <style>
+
+
+
         :root {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --bg-card: #3B3B3B;
-            --text-primary: #fff;
-            --text-secondary: #ccc;
-            --text-muted: #aaa;
-            --accent: #0386FF;
-            --accent-hover: #0270d8;
-            --success: #00c853;
-            --danger: #ff4444;
-            --warning: #ff9800;
-            --border: #555;
+
+
+
+            --primary: #ff5e57;
+
+
+
+            --secondary: #3d4c5c;            
+
+
+
+            --light: #f8f9fa;
+
+
+
+            --dark: #1a1a1a;
+
+
+
+            --accent: #4bcffa;
+
+
+
+            --text: #333333;
+
+
+
+            --gray: #718096;
+
+
+
+            --transition: all 0.3s ease;
+
+
+
         }
-        [data-theme="light"] {
-            --bg-primary: #f5f5f5;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --text-primary: #000;
-            --text-secondary: #333;
-            --text-muted: #666;
-            --accent: #0386FF;
-            --accent-hover: #0270d8;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ff9800;
-            --border: #ddd;
+
+
+
+        
+
+
+
+        * {
+
+
+
+            margin: 0;
+
+
+
+            padding: 0;
+
+
+
+            box-sizing: border-box;
+
+
+
         }
-        * { font-family: Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg-primary); color: var(--text-primary); padding: 20px 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
-        .container { max-width: 500px; margin: 0 auto; text-align: center; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 30px; }
-        .header img { width: 40px; height: 40px; }
-        .title { font-size: 26px; font-weight: bold; }
-        .total { margin: 40px 0; }
-        .total-amount { font-size: 50px; font-weight: bold; position: relative; display: inline-block; }
-        .edit-icon { font-size: 20px; color: var(--accent); cursor: pointer; position: absolute; left: -35px; top: 50%; transform: translateY(-50%); opacity: 0.7; transition: opacity 0.2s; }
-        .edit-icon:hover { opacity: 1; }
-        .description { font-size: 16px; margin-bottom: 10px; color: var(--text-secondary); }
-        .goal-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 50px; }
-        .description2 { color: var(--accent); font-size: 13px; }
-        .goal-edit-icon { font-size: 14px; color: var(--accent); cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
-        .goal-edit-icon:hover { opacity: 1; }
-        .goal-input { font-size: 13px; color: var(--accent); background: transparent; border: 2px solid var(--accent); border-radius: 8px; padding: 4px 8px; width: 100px; text-align: center; outline: none; }
-        .list { display: flex; flex-direction: column; gap: 30px; align-items: center; }
-        .item { display: flex; align-items: center; width: 90%; max-width: 450px; background-color: var(--bg-card); padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; user-select: none; -webkit-user-select: none; position: relative; }
-        .item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .item img.logo { width: 60px; height: 60px; border-radius: 15px; object-fit: contain; background-color: #fff; padding: 5px; margin-right: 15px; flex-shrink: 0; }
-        .details { flex-grow: 1; text-align: left; }
-        .name { color: var(--text-primary); font-weight: 700; font-size: 15px; margin-bottom: 5px; }
-        .status { color: var(--success); font-size: 15px; display: flex; align-items: center; gap: 8px; }
-        .amount-container { position: relative; text-align: right; margin-left: 15px; }
-        .amount { font-size: 22px; font-weight: bold; color: var(--text-primary); }
-        .amount-edit { width: 20px; height: 20px; cursor: pointer; position: absolute; left: -30px; top: 50%; transform: translateY(-50%); }
-        input.edit-input { font-size: 22px; font-weight: bold; width: 130px; text-align: right; border: none; background: transparent; outline: 2px solid var(--accent); border-radius: 8px; padding: 5px; color: var(--text-primary); }
 
-        .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .login-overlay.active { display: flex; }
-        .login-box { background: var(--bg-secondary); padding: 35px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .login-box h2 { margin-bottom: 25px; font-size: 24px; }
-        .login-box input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-primary); color: var(--text-primary); font-size: 16px; outline: none; }
-        .login-box input:focus { border-color: var(--accent); }
-        .login-box button { width: 100%; padding: 14px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .login-box button:hover { background: var(--accent-hover); }
-        .login-box .switch-mode { margin-top: 18px; color: var(--text-muted); font-size: 14px; }
-        .login-box .switch-mode span { color: var(--accent); cursor: pointer; font-weight: bold; }
-        .login-box .error-msg { color: var(--danger); font-size: 13px; margin-top: -5px; margin-bottom: 10px; min-height: 18px; }
-        .skip-login { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
-        .skip-login button { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .skip-login button:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
 
-        .auth-float-btn { position: fixed; top: 15px; right: 15px; z-index: 100; background: var(--accent); color: #fff; border: none; border-radius: 25px; padding: 8px 16px; font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none; }
-        .auth-float-btn.visible { display: block; }
-        .auth-float-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
 
-        .user-bar { display: none; justify-content: space-between; align-items: center; padding: 10px 20px; margin-bottom: 15px; }
-        .user-bar.active { display: flex; }
-        .user-bar .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); }
-        .user-bar .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: #fff; }
-        .user-bar button.logout-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
-        .user-bar button.logout-btn:hover { border-color: var(--danger); color: var(--danger); }
-        .sync-status { font-size: 11px; color: var(--success); margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .sync-status.offline { color: var(--warning); }
-        .sync-status.local-only { color: var(--text-muted); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block; }
-        .sync-status.offline .dot { background: var(--warning); }
-        .sync-status.local-only .dot { background: var(--text-muted); }
-
-        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
-        .preset-item { background: var(--bg-card); border: 2px solid transparent; border-radius: 12px; padding: 12px 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .preset-item:hover { border-color: var(--accent); transform: scale(1.05); }
-        .preset-item img { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: #fff; padding: 3px; margin-bottom: 6px; }
-        .preset-item span { display: block; font-size: 12px; color: var(--text-primary); }
-        .preset-item.added { opacity: 0.5; pointer-events: none; border-color: var(--success); }
-
-        .add-btn { display: flex; align-items: center; justify-content: center; width: 90%; max-width: 450px; padding: 20px; border: 2px dashed var(--border); border-radius: 15px; cursor: pointer; margin: 20px auto 0; color: var(--text-muted); font-size: 16px; gap: 10px; }
-        .add-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal-overlay.active { display: flex; }
-        .modal-box { background: var(--bg-secondary); padding: 25px; border-radius: 20px; width: 90%; max-width: 420px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .modal-box h3 { margin-bottom: 15px; font-size: 20px; }
-        .modal-box .section-title { text-align: left; font-size: 14px; color: var(--text-muted); margin: 15px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .modal-box input, .modal-box select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-primary); color: var(--text-primary); font-size: 15px; outline: none; }
-        .modal-box input:focus { border-color: var(--accent); }
-        .modal-box .img-preview { width: 60px; height: 60px; border-radius: 12px; object-fit: contain; background: #fff; margin: 8px auto; display: none; }
-        .modal-box .img-preview.active { display: block; }
-        .modal-box .error-text { color: var(--danger); font-size: 12px; margin: -8px 0 10px; display: none; }
-        .modal-box .error-text.active { display: block; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
-        .modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: bold; }
-        .modal-buttons .btn-primary { background: var(--accent); color: #fff; }
-        .modal-buttons .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
-        .custom-toggle { color: var(--accent); font-size: 13px; cursor: pointer; margin: 10px 0; display: inline-block; }
-        .custom-toggle:hover { text-decoration: underline; }
-
-        .delete-confirm { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10001; }
-        .delete-confirm.active { display: flex; }
-        .delete-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
-        .delete-box h3 { color: var(--danger); margin-bottom: 15px; }
-        .delete-box p { color: var(--text-secondary); margin-bottom: 20px; }
-        .delete-box .delete-buttons { display: flex; gap: 10px; }
-        .delete-box .delete-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .delete-box .btn-delete { background: var(--danger); color: #fff; }
-        .delete-box .btn-cancel { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
-
-        .lang-selector { position: fixed; top: 15px; left: 15px; z-index: 100; }
-        .lang-selector select { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer; outline: none; }
-        .lang-selector select:hover { border-color: var(--accent); }
         
-        /* Location permission modal */
-        .location-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10002; }
-        .location-modal.active { display: flex; }
-        .location-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
-        .location-box h3 { margin-bottom: 15px; color: var(--accent); }
-        .location-box p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; }
-        .location-box .loc-buttons { display: flex; gap: 10px; }
-        .location-box .loc-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: bold; }
-        .location-box .btn-allow { background: var(--accent); color: #fff; }
-        .location-box .btn-deny { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
 
-        /* Settings Button & Modal */
-        .settings-btn { position: fixed; top: 15px; right: 15px; z-index: 100; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all 0.2s; }
-        .settings-btn:hover { border-color: var(--accent); color: var(--accent); transform: rotate(30deg); }
+
+
+        body {
+
+
+
+            font-family: 'Inter', sans-serif;
+
+
+
+            color: var(--text);
+
+
+
+            line-height: 1.6;
+
+
+
+            background-color: #fff;
+
+
+
+            overflow-x: hidden;
+
+
+
+        }
+
+
+
         
-        .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10003; }
-        .settings-modal.active { display: flex; }
-        .settings-box { background: var(--bg-secondary); padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; max-height: 85vh; overflow-y: auto; }
-        .settings-box h3 { margin-bottom: 20px; font-size: 22px; color: var(--accent); }
-        .settings-section { text-align: left; margin-bottom: 20px; }
-        .settings-section-title { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .settings-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-card); border-radius: 10px; margin-bottom: 10px; }
-        .settings-option label { font-size: 14px; color: var(--text-primary); }
-        .settings-option select { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; cursor: pointer; }
-        .settings-option select:hover { border-color: var(--accent); }
-        .toggle-switch { position: relative; width: 50px; height: 26px; background: var(--border); border-radius: 13px; cursor: pointer; transition: background 0.3s; }
-        .toggle-switch.active { background: var(--accent); }
-        .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: transform 0.3s; }
-        .toggle-switch.active::after { transform: translateX(24px); }
-        .close-settings { margin-top: 20px; padding: 12px 30px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); border-radius: 10px; cursor: pointer; font-size: 14px; }
-        .close-settings:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* Long press indicator */
-        .long-press-indicator { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--text-muted); opacity: 0.6; }
+
+
+        h1, h2, h3, h4, h5 {
+
+
+
+            font-family: 'Playfair Display', serif;
+
+
+
+            font-weight: 700;
+
+
+
+            margin-bottom: 1rem;
+
+
+
+            line-height: 1.3;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .container {
+
+
+
+            width: 100%;
+
+
+
+            max-width: 1200px;
+
+
+
+            margin: 0 auto;
+
+
+
+            padding: 0 2rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* Header */
+
+
+
+        header {
+
+
+
+            background-color: #fff;
+
+
+
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+
+
+            position: fixed;
+
+
+
+            width: 100%;
+
+
+
+            top: 0;
+
+
+
+            z-index: 1000;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .navbar {
+
+
+
+            display: flex;
+
+
+
+            justify-content: space-between;
+
+
+
+            align-items: center;
+
+
+
+            padding: 1.5rem 0;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .logo {
+
+
+
+            font-family: 'Playfair Display', serif;
+
+
+
+            font-size: 1.8rem;
+
+
+
+            font-weight: 700;
+
+
+
+            color: var(--primary);
+
+
+
+            text-decoration: none;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .nav-links {
+
+
+
+            display: flex;
+
+
+
+            list-style: none;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .nav-links li {
+
+
+
+            margin-left: 2rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .nav-links a {
+
+
+
+            text-decoration: none;
+
+
+
+            color: var(--dark);
+
+
+
+            font-weight: 500;
+
+
+
+            transition: var(--transition);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .nav-links a:hover {
+
+
+
+            color: var(--primary);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .btn {
+
+
+
+            display: inline-block;
+
+
+
+            padding: 0.8rem 1.8rem;
+
+
+
+            background-color: white;
+
+
+
+            color: #000;
+
+
+
+            border-radius: 30px;
+
+
+
+            text-decoration: none;
+
+
+
+            font-weight: 600;
+
+
+
+            transition: var(--transition);
+
+
+
+            border: none;
+
+
+
+            cursor: pointer;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .btn:hover {
+
+
+
+            
+
+
+
+            transform: translateY(-2px);
+
+
+
+            box-shadow: 0 4px 10px rgba(255, 94, 87, 0.3);
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* Hero Section */
+
+
+
+        .hero {
+
+
+
+            padding: 10rem 0 5rem;
+
+
+
+                  text-align: center;
+
+
+
+        }
+
+
+
+        
+
+
+
+    
+
+       
+
+        
+
+
+
+        .hero p {
+
+
+
+            font-size: 1.2rem;
+
+
+
+            max-width: 700px;
+
+
+
+            margin: 0 auto 2rem;
+
+
+
+            color: #fff;
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* Features */
+
+
+
+        .features {
+
+
+
+            padding: 5rem 0;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .section-title {
+
+
+
+            text-align: center;
+
+
+
+            margin-bottom: 4rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .section-title h2 {
+
+
+
+            font-size: 2.5rem;
+
+
+
+            
+
+
+
+        }
+
+
+
+        
+
+
+
+        .section-title p {
+
+
+
+            
+
+
+
+            max-width: 600px;
+
+
+
+            margin: 0 auto;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .features-grid {
+
+
+
+            display: grid;
+
+
+
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+
+
+            gap: 2rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .feature-card {
+
+
+
+            background-color: var(--secondary);
+
+
+
+            border-radius: 10px;
+
+
+
+            padding: 2rem;
+
+
+
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+
+
+
+            transition: var(--transition);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .feature-card:hover {
+
+
+
+            transform: translateY(-5px);
+
+
+
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .feature-icon {
+
+
+
+            font-size: 2.5rem;
+
+
+
+            color: var(--primary);
+
+
+
+            margin-bottom: 1.5rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .feature-card h3 {
+
+
+
+            font-size: 1.5rem;
+
+
+
+            margin-bottom: 1rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* Demo Section */
+
+
+
+        .demo {
+
+
+
+            padding: 5rem 0;
+
+
+
+            
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-grid {
+
+
+
+            display: grid;
+
+
+
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+
+
+            gap: 2rem;
+
+
+
+            margin-top: 3rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-card {
+
+
+
+            border-radius: 15px;
+
+
+
+            overflow: hidden;
+
+
+
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+
+
+
+            transition: var(--transition);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-card:hover {
+
+
+
+            transform: translateY(-5px);
+
+
+
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-img {
+
+
+
+            height: 210px;
+
+
+
+            background-color: var(--secondary);
+
+
+
+            display: flex;
+
+
+
+            align-items: center;
+
+
+
+            justify-content: center;
+
+
+
+           color: #ffffff; /* لون أزرق */
+
+
+
+            font-size: 1.5rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-content {
+
+
+
+            padding: 1.5rem;
+
+
+
+             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .demo-content h3 {
+
+
+
+            font-size: 1.3rem;
+
+
+
+            margin-bottom: 0.5rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* CTA Section */
+
+
+
+        .cta {
+
+
+
+            padding: 5rem 0;
+
+
+
+            text-align: center;
+
+
+
+            background: linear-gradient(135deg, var(--secondary) 0%, #2d3748 100%);
+
+
+
+            color: white;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .cta h2 {
+
+
+
+            font-size: 2.5rem;
+
+
+
+            margin-bottom: 1.5rem;
+
+
+
+            color: white;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .cta p {
+
+
+
+            max-width: 600px;
+
+
+
+            margin: 0 auto 2rem;
+
+
+
+            font-size: 1.1rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+        .btn-light {
+
+
+
+            background-color: white;
+
+
+
+            color: var(--secondary);
+
+
+
+        }
+
+
+
+        
+
+
+
+        .btn-light:hover {
+
+
+
+            background-color: var(--light);
+
+
+
+            color: var(--dark);
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* Footer */
+
+
+
+        footer {
+
+
+
+            background-color: var(--dark);
+
+
+
+            color: white;
+
+
+
+            padding: 4rem 0 2rem;
+
+
+
+        }
+
+
+
+        
+
+
+
+ 
+
+
+
+        
+
+
+
+        
+
+
+
+        
+
+
+
+              .feature-card h3 {
+
+
+
+  color: #fff;   /* أو أي لون اخترته */
+
+
+
+}
+
+
+
+.feature-card p {
+
+
+
+  color: #fff;   /* رمادي أخف للفقرات */
+
+
+
+} 
+
+
+
+        
+
+
+
+ 
+
+
+
+        
+
+
+
     </style>
+
+
+
 </head>
+
+
+
 <body>
-<div class="lang-selector">
-        <select id="langSelect" onchange="changeLanguage(this.value)">
-            <option value="en">🇬🇧 English</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="it">🇮🇹 Italiano</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="tr">🇹🇷 Türkçe</option>
-            <option value="nl">🇳🇱 Nederlands</option>
-            <option value="pl">🇵🇱 Polski</option>
-        </select>
-    </div>
 
-    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
 
-    <div id="locationModal" class="location-modal">
-        <div class="location-box">
-            <h3>📍 <span id="locTitle">Location Access</span></h3>
-            <p id="locMessage">Allow access to your location to automatically set the appropriate language for your country?</p>
-            <div class="loc-buttons">
-                <button class="btn-allow" onclick="allowLocation()" id="btnAllow">Allow</button>
-                <button class="btn-deny" onclick="denyLocation()" id="btnDeny">Not Now</button>
-            </div>
+
+    
+
+<section class="hero">
+
+  <!-- الفيديو -->
+
+  <video autoplay muted loop playsinline class="hero-video">
+
+    <source src="https://files.catbox.moe/1oyjij.mp4" type="video/mp4">
+
+  </video>
+
+  
+
+  <!-- المحتوى -->
+
+  <div class="container">
+
+    <!-- ظل للنصوص -->
+<h1 style="font-weight: bold; text-shadow: 9px 9px 9px rgba(0,0,0,0.3);">Welcome to the Zaki Dev</h1>
+
+<p style="text-shadow: 9px 9px 9px rgba(0,0,0,0.3);">The official website for zakidev.shop applications</p>
+
+
+<a href="https://en.uptodown.com/developer/zaki-apps" class="btn" style=" rgba(0,0,0,0.2);">My apps on Uptodown
+<img style="width: 30px; height: 30px; vertical-align: middle; margin-left: 5px;" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1776468720/1776468663813_bhn7xv.png"></a>
+
+      
+
+      
+
+    </a>
+
+  </div>
+
+  
+
+  <video 
+
+  autoplay 
+
+  muted 
+
+  loop 
+
+  playsinline 
+
+  webkit-playsinline 
+
+  x5-playsinline
+
+  class="hero-video"
+
+  id="hero-video">
+
+  <source src="https://files.catbox.moe/1oyjij.mp4" type="video/mp4">
+
+</video>
+
+</section>
+
+<style>
+
+.hero {
+
+  position: relative;
+
+  padding: 11rem 0 8rem;
+
+  text-align: center;
+
+  overflow: hidden;
+
+  background: linear-gradient(135deg, var(--secondary) 0%, #2d3748 100%);
+
+}
+
+
+
+/* صورة placeholder */
+
+.video-placeholder {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  background: linear-gradient(135deg, var(--secondary) 0%, #2d3748 100%);
+
+  background-size: cover;
+
+  background-position: center;
+
+  z-index: 0;
+
+}
+
+
+
+.hero-video {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  z-index: 1; /* فوق الصورة */
+
+  opacity: 0; /* مخفي في البداية */
+
+  transition: opacity 0.5s ease; /* تأثير ظهور ناعم */
+
+}
+
+
+
+/* عندما يبدأ الفيديو بالعمل */
+
+.hero-video.playing {
+
+  opacity: 1;
+
+}
+
+
+
+.hero .container {
+
+  position: relative;
+
+  z-index: 2;
+
+  color: white;
+
+}
+
+
+
+
+
+</style>
+
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+
+  var video = document.getElementById('hero-video');
+
+  
+
+  video.addEventListener('canplay', function() {
+
+    video.classList.add('playing');
+
+  });
+
+  
+
+  // محاولة التشغيل
+
+  video.play().catch(function(error) {
+
+    console.log("Autoplay prevented:", error);
+
+  });
+
+});
+
+</script>
+
+
+
+
+
+  
+  
+</section>
+
+<style>
+/* تنسيقات الفيديو الخلفية لقسم CTA */
+.cta {
+  position: relative;
+  padding: 5rem 0;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--secondary) 0%, #2d3748 100%);
+}
+
+.cta-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.cta-video.playing {
+  opacity: 1;
+}
+
+.cta .container {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.cta h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.cta p {
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.cta .btn {
+  background-color: white;
+  color: var(--secondary);
+  text-shadow: none;
+}
+
+.cta .btn:hover {
+  background-color: var(--light);
+  color: var(--dark);
+}
+</style>
+
+<script>
+// تشغيل الفيديو عند تحميله
+document.addEventListener('DOMContentLoaded', function() {
+  var ctaVideo = document.querySelector('.cta-video');
+  if (ctaVideo) {
+    ctaVideo.addEventListener('canplay', function() {
+      ctaVideo.classList.add('playing');
+    });
+    ctaVideo.play().catch(function(error) {
+      console.log("Autoplay prevented:", error);
+    });
+  }
+});
+</script>
+
+    <!-- Hero Section -->
+
+
+
+    
+
         </div>
-    </div>
 
-    <div id="settingsModal" class="settings-modal">
-        <div class="settings-box">
-            <h3>⚙️ <span id="settingsTitle">Settings</span></h3>
-            
-            <div class="settings-section">
-                <div class="settings-section-title" id="langSectionTitle">🌐 Language</div>
-                <div class="settings-option">
-                    <label id="langLabel">Select Language</label>
-                    <select id="settingsLangSelect" onchange="changeLanguage(this.value)">
-                        <option value="en">🇬🇧 English</option>
-                        <option value="ar">🇸🇦 العربية</option>
-                        <option value="fr">🇫🇷 Français</option>
-                        <option value="es">🇪🇸 Español</option>
-                        <option value="it">🇮🇹 Italiano</option>
-                        <option value="de">🇩🇪 Deutsch</option>
-                        <option value="pt">🇵🇹 Português</option>
-                        <option value="tr">🇹🇷 Türkçe</option>
-                        <option value="nl">🇳🇱 Nederlands</option>
-                        <option value="pl">🇵🇱 Polski</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="settings-section">
-                <div class="settings-section-title" id="themeSectionTitle">🎨 Appearance</div>
-                <div class="settings-option">
-                    <label id="darkModeLabel">Dark Mode</label>
-                    <div class="toggle-switch" id="themeToggle" onclick="toggleThemeFromSettings()"></div>
-                </div>
-            </div>
 
-            <div class="settings-section">
-                <div class="settings-section-title" id="currencySectionTitle">💰 Currency</div>
-                <div class="settings-option">
-                    <label id="currencyLabel">Select Currency</label>
-                    <select id="currencySelect" onchange="changeCurrency(this.value)">
-                        <option value="EUR">🇪🇺 EUR (€)</option>
-                        <option value="USD">🇺🇸 USD ($)</option>
-                        <option value="GBP">🇬🇧 GBP (£)</option>
-                        <option value="JPY">🇯🇵 JPY (¥)</option>
-                        <option value="EGP">🇪🇬 EGP (E£)</option>
-                        <option value="SAR">🇸🇦 SAR (﷼)</option>
-                        <option value="AED">🇦🇪 AED (د.إ)</option>
-                        <option value="TRY">🇹🇷 TRY (₺)</option>
-                        <option value="INR">🇮🇳 INR (₹)</option>
-                        <option value="CNY">🇨🇳 CNY (¥)</option>
-                        <option value="KRW">🇰🇷 KRW (₩)</option>
-                        <option value="RUB">🇷🇺 RUB (₽)</option>
-                        <option value="BRL">🇧🇷 BRL (R$)</option>
-                        <option value="CAD">🇨🇦 CAD (C$)</option>
-                        <option value="AUD">🇦🇺 AUD (A$)</option>
-                        <option value="CHF">🇨🇭 CHF (Fr)</option>
-                        <option value="SEK">🇸🇪 SEK (kr)</option>
-                        <option value="NOK">🇳🇴 NOK (kr)</option>
-                        <option value="DKK">🇩🇰 DKK (kr)</option>
-                        <option value="PLN">🇵🇱 PLN (zł)</option>
-                    </select>
-                </div>
-            </div>
+    </section>
 
-            <button class="close-settings" onclick="closeSettings()" id="btnCloseSettings">Close</button>
-        </div>
-    </div>
 
-    <button id="authFloatBtn" class="auth-float-btn" onclick="showLogin()">🔐 Sign In</button>
 
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-box">
-            <h2 id="loginTitle">Sign In</h2>
-            <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
-            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
-            <div class="error-msg" id="errorMsg"></div>
-            <button id="authBtn" onclick="handleAuth()">Sign In</button>
-            <div class="switch-mode">
-                <span id="switchText">No account?</span>
-                <span onclick="toggleMode()" id="switchLink"> Create Account</span>
-            </div>
-            <div class="skip-login">
-                <button onclick="skipLogin()">⏭️ Continue without Sign In</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="addModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 id="addModalTitle">Add New Account</h3>
-            <div class="section-title" id="presetSectionTitle">🏦 Quick Select</div>
-            <div class="preset-grid" id="presetGrid"></div>
-            <div class="custom-toggle" onclick="showCustomForm()" id="customToggle">✏️ Or add custom account</div>
-            <div id="customForm" style="display:none;">
-                <input type="text" id="newAccountName" placeholder="Account name (e.g. Binance)">
-                <select id="newAccountType" onchange="handleTypeChange()">
-                    <option value="">Select image type...</option>
-                    <option value="url">Image URL</option>
-                    <option value="upload">Upload from device</option>
-                </select>
-                <input type="url" id="newAccountImage" placeholder="Image URL" style="display:none;">
-                <input type="file" id="newAccountFile" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-                <img id="imagePreview" class="img-preview" alt="Preview">
-                <div id="imageError" class="error-text">⚠️ Adult content not allowed</div>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-primary" onclick="addNewAccount()" id="btnAdd">Add</button>
-                <button class="btn-secondary" onclick="closeAddModal()" id="btnCancel">Cancel</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="deleteConfirm" class="delete-confirm">
-        <div class="delete-box">
-            <h3>⚠️ <span id="deleteTitle">Confirm Delete</span></h3>
-            <p id="deleteMessage">Are you sure you want to delete this account?</p>
-            <div class="delete-buttons">
-                <button class="btn-delete" onclick="confirmDelete()" id="btnDelete">Delete</button>
-                <button class="btn-cancel" onclick="cancelDelete()" id="btnCancelDelete">Cancel</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="mainApp">
+
+    <!-- Features Section -->
+
+
+
+    
+
+
+
         <div class="container">
-            <div class="user-bar" id="userBar">
-                <div class="user-info">
-                    <div class="avatar" id="userAvatar">U</div>
-                    <span id="userEmail">user@email.com</span>
-                </div>
-                <button class="logout-btn" onclick="logout()" id="btnLogout">Logout</button>
-            </div>
-<br/>
-<br/>
-            <div class="header">
-                <li onclick="toggleTheme()" style="cursor:pointer; list-style:none;">
-                    <span id="themeIcon" style="font-size: 30px;">☀️</span>
-                </li>
-                <div class="title" id="appTitle">Total</div>
-                <img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1776707273/20260420_194720_aky8uu.png" alt="Chart">
+
+
+
+            <div class="section-title">
+
+
+
+                <br/>
+
+
+
+
+
+<h2>Details</h2>
+
             </div>
 
-            <div class="total">
-                <div class="total-amount" id="total-amount">€0.00
-                    <i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>
+
+
+     <div class="features-grid">
+
+
+
+                <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fas fa-paint-brush"></i>
+
+
+
+                    </div>
+
+
+
+<h3 style="font-weight: bold;">Design</h3>
+
+
+                    <p>Each application has been carefully designed to be convenient and easy to use. </p>
+
+
+
                 </div>
+
+
+
+                <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fas fa-mobile-alt"></i>
+
+
+
+                    </div>
+
+
+
+                    <h3>Programming</h3>
+
+
+
+                    <p>I have extensive experience in creating Android applications, 3 years of experience
+
+
+
+Examples of Alquran applications | Alkitaab</p>
+
+
+
+                </div>
+
+
+
+        <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fas fa-user-tie"></i>
+
+
+
+                    </div>
+
+
+
+                    <h3>Administration</h3>
+
+
+
+                    <p>Corporate management, liability, paperwork, financial and sensitive secretariats</p>
+
+
+
+                </div>
+
+
+
+          <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fas fa-language"></i>
+
+
+
+                    </div>
+
+
+
+                    <h3>Language</h3>
+
+
+
+                    <p>Many languages have been added to make the applications suitable for all countries. </p>
+
+
+
+                </div>
+
+
+
+               <a href="https://www.sitezapk.online"> <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fas fa-edit"></i>
+
+
+
+                    </div>
+
+
+
+                    <h3>Create an application </h3>
+
+
+
+                    <p>Do you have a website and want to convert it into an Android app? Click to learn more...</p>
+
+
+
+                </div>
+
+
+
+               <a href="https://www.instagram.com/zakisherifdev"> <div class="feature-card">
+
+
+
+                    <div class="feature-icon">
+
+
+
+                        <i class="fa fa-instagram"></i>
+
+
+
+                    </div>
+
+
+
+                    <h3>Instagram?</h3>
+
+
+
+                    <p>Follow me on Instagram to learn more about me and the new.</p>
+
+
+
+                </div>
+
+
+
             </div>
 
-            <div class="description" id="descCollected">The amount collected</div>
-            <div class="goal-container">
-                <span class="description2" id="goalText">Desired goal [ 50K € ]</span>
-                <i class="fa-solid fa-pen goal-edit-icon" onclick="editGoal()"></i>
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+
+
+
+    <!-- Demo Section -->
+
+
+
+    <section class="demo" id="demos">
+
+
+
+        <div class="container">
+
+
+
+            <div class="section-title">
+
+
+
+                <h2>Applications</h2>
+
+
+
+                <p>All my apps</p>
+
+
+
             </div>
+
+
+
+           <a href="https://com-alquran-alkarim.en.uptodown.com/android"> <div class="demo-grid">
+
+
+
+                <div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773119028/20260310_065816_urv13w.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Alquran app</h3>
+
+
+
+                      <p>This app seamlessly blends modern technology with rich Islamic content, offering a comprehensive spiritual experience. It allows users to listen to the Quran, watch Islamic channels, and explore the complete stories of all prophets in an engaging and accessible way.</p>
+
+
+
+                    </div>
+
+
+
+                </div>
+
+
+
+              <a href="https://com-bible-shamil.en.uptodown.com/android">  <div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773119397/20260310_070935_oj3cal.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Alkitab app</h3>
+
+
+
+                        <p>This app seamlessly blends modern technology with rich Christian content, offering a comprehensive spiritual experience. It allows users to explore Christian articles, listen to Bible radio stations, and watch live broadcasts of Bible channels all in one place.</p>
+
+
+                    </div>
+
+
+
+                </div>
+
+
+
+                <a href="https://copy-appwsrgggfg.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773119025/20260310_070237_btb4sh.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Almajd Quran Channel app</h3>
+
+
+
+                        <p>It is an application that displays Al-Majd Islamic channels live video and radio broadcasts in an easy and simple way. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://ap2319800-gri.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118621/20260310_065219_okgl8a.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Weather app</h3>
+
+
+
+                        <p>It is a quick application to view live weather without having to wait to search for the weather forecast. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://com-radio-fm-zaki.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118616/20260310_065112_gg7rb3.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Radio stations of Arab countries app</h3>
+
+
+
+                        <p>It is an application for listening to all radio stations in Arab countries for free, and it is easy and quick to use for listening without problems. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://qr-zaki.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118622/20260310_065321_xnars5.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>QR code generator app</h3>
+
+
+
+                        <p>It is an application for quickly scanning and creating QR codes without any problems or effort; it is fast, easy to use, and simple.</p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://aplic2001819-pmo.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773119028/20260310_065843_pn643o.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Alquran Alkarim Beta app</h3>
+
+
+
+                        <p>The Holy Quran application is a comprehensive application that contains all the needs of a Muslim, the feature of day and night mode, the feature of Qur’anic passages, and other advantages. Discover it now.</p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://com-w-17185438.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118618/20260310_065017_xjjiq4.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Smart photo editor app</h3>
+
+
+
+                        <p>It is an application that allows you to edit photos quickly and easily with tools, and change photo filters to achieve a professional design. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://thesmartcalculato-com.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773119001/20260310_065912_brinyj.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Smart Calculator app</h3>
+
+
+
+                        <p>It's a small calculator app to help you get through your day quickly and without too many complications. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://rosary-zaki.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118618/20260310_065552_htoe8o.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Rosary app</h3>
+
+
+
+                        <p>It is a Muslim prayer beads app for glorifying and remembering God with a single tap, with the ability to change the color of the tasbih counter. It is a simple and easy-to-use app that makes glorifying God easy with just one tap. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>   
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    
+
+
+
+                    <a href="https://com-mobeasyapp-app348189911273.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118618/20260310_065404_zdb5md.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Al Mushaf app</h3>
+
+
+
+                        <p>It is an application for reading the Holy Quran without complications and with high text quality. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                <a href="https://apli2586399-fud.en.uptodown.com/android"><div class="demo-card">
+
+
+
+                    <div class="demo-img"><img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773118617/20260310_065502_it9sy7.png"></div>
+
+
+
+                    <div class="demo-content">
+
+
+
+                        <h3>Holy Quran Channel from Saudi Arabia live broadcast app</h3>
+
+
+
+                        <p>It's an application that allows you to watch the Holy Quran Channel from Saudi Arabia live, broadcast from the Kingdom of Saudi Arabia 🇸🇦. It's free and easy to use. </p>
+
+
+
+                    </div>
+
+
+
+                    </div>
+
+
+
+                </a> 
+
+
+
+    
+
+
+
+  </body>
+
+
+
+</html>
+
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+
+
+    <!-- CTA Section -->
+
+
+
+
+
+<section class="cta" id="purchase">
+  <!-- الفيديو الخلفية -->
+  <video autoplay muted loop playsinline class="cta-video">
+    <source src="https://archive.org/download/you-cut-20260419-224939704/YouCut_20260419_232846350.mp4" type="video/mp4">
+  </video>
+        <!-- المحتوى -->
+  <div class="container">
+    <h2>Do you want your website to be an Android app?</h2>
+    <p>Convert your featured website into an Android app via sitezapk.online</p>
+    <a href="https://www.sitezapk.online" class="btn">Buy the service now</a>
+  </div>
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+
+
+    <!-- Footer -->
+
+
+
+    
+
+
+
+        <div class="container">
+
+
+
+            <div class="footer-grid">
+
+
+
+                <div class="footer-col">
+
+<br/>
+
+                    <h3>Mr. Zaki Sherif</h3>
+
+
+
+                    <p>Zaki Sherif builds powerful, user-friendly Android apps that blend smart features with seamless design. Every app is crafted to feel intuitive, whether you're using it for the first time or the hundredth. From smooth navigation to practical tools, the focus is always on making your experience easier and more enjoyable. Clean performance and thoughtful features ensure your device stays efficient while you get things done. With attention to detail and a passion for innovation, Zaki ensures that each app not only works flawlessly but also adds real value to your daily life. Reliable, simple, and thoughtfully designed-just the way apps should be.</p>
+
+
+
+<br/>
+
+
+
+                   
+
+
+
+<style>
+
+
+
+    .social-links a i {
+
+
+
+        font-size: 25px;
+
+
+
+        margin: 0 5px;
+
+
+
+        
+
+
+
+        transition: color 0.1s ease;
+
+
+
+    }
+
+
+
+
+
+
+
+    /* الألوان تظهر فقط عند النقر */
+
+
+
+    .social-links a.youtube:active i {
+
+
+
+        color: #FF0000;
+
+
+
+    }
+
+
+
+
+
+
+
+    .social-links a.instagram:active i {
+
+
+
+        background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+
+
+
+        -webkit-background-clip: text;
+
+
+
+        -webkit-text-fill-color: transparent;
+
+
+
+    }
+
+
+
+
+
+
+
+    .social-links a.twitter:active i {
+
+
+
+        color: #1DA1F2;
+
+
+
+    }
+
+
+
+
+
+
+
+    .social-links a.tiktok:active i {
+
+
+
+        color: #000;
+
+
+
+        text-shadow: 0 0 2px #ff0050, 0 0 5px #00f2ea;
+
+
+
+    }
+
+
+
+
+
+
+
+    .social-links a.linkedin:active i {
+
+
+
+        color: #0077b5;
+
+
+
+    }
+
+
+
+</style>
+
+
+
+
+
+
+
+<div class="social-links">
+
+
+
+    <a href="https://twitter.com/zakisherifatty" class="twitter"><i class="fab fa-twitter"></i></a>
+
+
+
+    <a href="https://www.instagram.com/zakisherifdev" class="instagram"><i class="fab fa-instagram"></i></a>
+
+
+
+    <a href="https://www.tiktok.com/@zakisherifdev" class="tiktok"><i class="fab fa-tiktok"></i></a>
+
+
+
+    <a href="https://bsky.app/profile/zakisherifdev.bsky.social" class="twitter"><i class="fa-brands fa-bluesky"></i></a>
+
+
+
+    <a href="https://youtube.com/@zakisherifdev" class="youtube"><i class="fab fa-youtube"></i></a>
+
+
+
+    <a href="https://www.linkedin.com/in/zakisharifdev" class="linkedin"><i class="fa fa-linkedin-square"></i></a>
+
+
+
+        
+
+
+
+                   </div>
+
+
+
+        </div>
+
+
+
+                </div>
+
+
+
+                <div class="footer-col">
+
+
+
+                    <h3>Quick Links</h3>
+
+
+
+                    <ul class="footer-links">
+
+
+
+                        <li><a href="#">Home</a></li>
+
+
+
+                        
+
+
+
+                        <li><a href="https://www.sitezapk.online">Request a service </a></li>
+
+
+
+                        <li><a href="https://ko-fi.com/zakisharifdev">Support us</a></li>
+
+
+
+                 
+
+
+
+   </ul>
+
+
+
+                </div>
+
+
+
+                <div class="footer-col">
+
+
+
+                    <h3>Support</h3>
+
+
+
+                    <ul class="footer-links">
+
+
+
+                        <li><a href="mailto:zakisherifdev@gmail.com">Report a problem</a></li>
+
+
+
+                        <li><a href="mailto:zakisherifdev@gmail.com">Contact Us</a></li>
+
+
+
+                        <li><a href="https://www.freeprivacypolicy.com/live/4727808a-9831-4398-a785-40bf13767d4d">Privacy Policy</a></li>
+
+
+
+                    </ul>
+
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+            <br/>
+
+
+
+            <div class="copyright">
+
+
+
+                <li style="text-align: center; list-style: none;">
+
+    All rights reserved to zakidev.shop 2026 &copy;
+
+</li>
+
+
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+    </footer>
+
+
+
+    <br/>
+
+
+
+    <br/>
+
+
+
+</body>
+
+
+
+</html>
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>واجهة تشبه تويتر مع تبويبات وسلايدر</title>
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+
+
+    <style>
+
+
+
+        * {
+
+
+
+            user-select: none;
+
+
+
+            margin: 0;
+
+
+
+            padding: 0;
+
+
+
+            box-sizing: border-box;
+
+
+
+            outline: none;
+
+
+
+        }
+
+
+
+
+
+
+
+        :root {
+
+
+
+            /* Light Mode (Default) */
+
+
+
+            --background-color: #ffffff;
+
+
+
+            --text-color: #000000;
+
+
+
+            --top-bar-bg: #ffffff;
+
+
+
+            --tab-color: #657786;
+
+
+
+            --tab-active-color: #1da1f2;
+
+
+
+            --sidebar-bg: #f5f8fa;
+
+
+
+            --sidebar-hover-bg: #e1e8ed;
+
+
+
+           
+
+
+
+
+
+
+
+            /* Dark Mode */
+
+
+
+            &[data-theme="dark"] {
+
+
+
+                --background-color: #000;
+
+
+
+                --text-color: #ffffff;
+
+
+
+                --top-bar-bg: #000;
+
+
+
+                --tab-color: #657786;
+
+
+
+                --tab-active-color: #1da1f2;
+
+
+
+                --sidebar-bg: #000;
+
+
+
+                --sidebar-hover-bg: #000;
+
+
+
+                
+
+
+
+            }
+
+
+
+
+
+
+
             
 
-            <div class="list" id="accountsList"></div>
 
-            <div class="add-btn" onclick="openAddModal()">
-                <span style="font-size: 24px; font-weight: bold;">+</span>
-                <span id="addBtnText">Add New Account</span>
+
+            
+
+
+
+            
+
+
+
+            
+
+
+
+            /* Blue Mode */
+
+
+
+            &[data-theme="blue"] {
+
+
+
+                --background-color: #15202b;
+
+
+
+                --text-color: #ffffff;
+
+
+
+                --top-bar-bg: #15202b;
+
+
+
+                --tab-color: #657786;
+
+
+
+                --tab-active-color: #1da1f2;
+
+
+
+                --sidebar-bg: #1c252e;
+
+
+
+                --sidebar-hover-bg: #2a3b4c;
+
+
+
+                
+
+
+
+            }
+
+
+
+               /* 
+
+
+
+            لون قسم البث المباشر في الرئيسية 
+
+
+
+             --content-bg: #ffffff;
+
+
+
+            --content-bg: 
+
+
+
+            */
+
+
+
+        }
+
+
+
+
+
+
+
+        body {
+
+
+
+            background-color: var(--background-color);
+
+
+
+            color: var(--text-color);
+
+
+
+            font-family: Arial, sans-serif;
+
+
+
+            overflow-x: hidden;
+
+
+
+            position: relative;
+
+
+
+        }
+
+
+
+
+
+
+
+        .header-wrapper {
+
+
+
+            position: fixed;
+
+
+
+            top: 0;
+
+
+
+            left: 0;
+
+
+
+            width: 100%;
+
+
+
+            z-index: 1000;
+
+
+
+            transition: transform 0.3s ease;
+
+
+
+        }
+
+
+
+
+
+
+
+        .header-wrapper.hidden {
+
+
+
+            transform: translateY(-100%);
+
+
+
+        }
+
+
+
+
+
+
+
+        .top-bar {
+
+
+
+            display: flex;
+
+
+
+            align-items: center;
+
+
+
+            justify-content: space-between;
+
+
+
+            padding: 10px 20px;
+
+
+
+            color: var(--text-color);
+
+
+
+            background-color: var(--top-bar-bg);
+
+
+
+        }
+
+
+
+
+
+
+
+        .left-section i {
+
+
+
+            font-size: 40px;
+
+
+
+            color: var(--tab-active-color);
+
+
+
+            cursor: pointer;
+
+
+
+            transform: scaleX(-1);
+
+
+
+        }
+
+
+
+
+
+
+
+        .center-section {
+
+
+
+            flex-grow: 1;
+
+
+
+            text-align: center;
+
+
+
+        }
+
+
+
+        .center-section i {
+
+
+
+            font-size: 30px;
+
+
+
+            color: var(--tab-active-color);
+
+
+
+        }
+
+
+
+
+
+
+
+        .right-section i {
+
+
+
+            font-size: 20px;
+
+
+
+            color: var(--text-color);
+
+
+
+        }
+
+
+
+
+
+
+
+        .fixed-container {
+
+
+
+            display: flex;
+
+
+
+            justify-content: center;
+
+
+
+            gap: 0;
+
+
+
+            padding: 0;
+
+
+
+            background-color: var(--top-bar-bg);
+
+
+
+        }
+
+
+
+
+
+
+
+        .tabs {
+
+
+
+            display: flex;
+
+
+
+            border-bottom: 1px solid var(--tab-color);
+
+
+
+            width: 100%;
+
+
+
+            justify-content: center;
+
+
+
+        }
+
+
+
+
+
+
+
+        .tab {
+
+
+
+            flex: 1;
+
+
+
+            text-align: center;
+
+
+
+            color: var(--tab-color);
+
+
+
+            padding: 15px 0; /* مساحة بين صور القنوات الاكثر مشاهدة وبين خط فاصل مواقيت الصلاة*/
+
+
+
+            cursor: pointer;
+
+
+
+            font-size: 18px;
+
+
+
+            font-weight: bold;
+
+
+
+        }
+
+
+
+
+
+
+
+        .tab.active {
+
+
+
+            color: var(--tab-active-color);
+
+
+
+            border-bottom: 3px solid var(--tab-active-color);
+
+
+
+        }
+
+
+
+
+
+
+
+        #uniquePoster {
+
+
+
+            overflow-x: scroll;
+
+
+
+            overflow-y: hidden;
+
+
+
+            white-space: nowrap;
+
+
+
+            margin: 3px;
+
+
+
+            position: relative;
+
+
+
+            text-align: center;
+
+
+
+            background-color: var(--content-bg);
+
+
+
+        }
+
+
+
+
+
+
+
+        #uniquePoster.initial-load {
+
+
+
+            opacity: 0;
+
+
+
+            transform: translateY(-30px);
+
+
+
+            animation: slideFromTop 1s ease-out forwards;
+
+
+
+        }
+
+
+
+
+
+
+
+        @keyframes slideFromTop {
+
+
+
+            0% {
+
+
+
+                opacity: 0;
+
+
+
+                transform: translateY(-30px);
+
+
+
+            }
+
+
+
+            100% {
+
+
+
+                opacity: 1;
+
+
+
+                transform: translateY(0);
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+
+
+
+        .arab {
+
+
+
+            transition: transform 0.4s ease;
+
+
+
+        }
+
+
+
+        .arab:active {
+
+
+
+            transform: scale(0.9);
+
+
+
+        }
+
+
+
+
+
+
+
+        .content {
+
+
+
+            display: none;
+
+
+
+            margin-top: 150px;
+
+
+
+            background-color: var(--content-bg);
+
+
+
+        }
+
+
+
+
+
+
+
+        .content.active {
+
+
+
+            display: block;
+
+
+
+        }
+
+
+
+
+
+
+
+        /* إعدادات القائمة الجانبية */
+
+
+
+        .sidebar {
+
+
+
+            position: fixed;
+
+
+
+            top: 0;
+
+
+
+            right: -300px; /* مخفية خارج الشاشة */
+
+
+
+            width: 260px; /* زيادة العرض لاستيعاب الأيقونات والنصوص */
+
+
+
+            height: 100%;
+
+
+
+            background-color: var(--sidebar-bg);
+
+
+
+            color: var(--text-color);
+
+
+
+            
+
+
+
+            
+
+
+
+            z-index: 1001;
+
+
+
+            overflow-y: auto; /* السماح بالتمرير داخل القائمة */
+
+
+
+        }
+
+
+
+
+
+
+
+        .sidebar.active {
+
+
+
+            right: 0;
+
+
+
+        }
+
+
+
+
+
+
+
+        .sidebar ul {
+
+
+
+            list-style: none;
+
+
+
+            padding: 0;
+
+
+
+            text-align: left;
+
+
+
+        }
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        .sidebar ul li i {
+
+
+
+            margin-left: 5px;
+
+
+
+        }
+
+
+
+
+
+
+
+        .sidebar ul li:hover {
+
+
+
+            background-color: var(--sidebar-hover-bg);
+
+
+
+        }
+
+
+
+
+
+
+
+        .sidebar-overlay {
+
+
+
+            position: fixed;
+
+
+
+            top: 0;
+
+
+
+            left: 0;
+
+
+
+            width: 100%;
+
+
+
+            height: 100%;
+
+
+
+            background-color: rgba(0, 0, 0, 0.5);
+
+
+
+            display: none;
+
+
+
+            z-index: 999;
+
+
+
+        }
+
+
+
+
+
+
+
+        .sidebar-overlay.active {
+
+
+
+            display: block;
+
+
+
+        }
+
+
+
+
+
+
+
+        .overlay {
+
+
+
+            position: fixed;
+
+
+
+            top: 0;
+
+
+
+            left: 0;
+
+
+
+            width: 100%;
+
+
+
+            height: 100%;
+
+
+
+            background-color: rgba(0, 0, 0, 0.5);
+
+
+
+            display: none;
+
+
+
+            justify-content: center;
+
+
+
+            align-items: center;
+
+
+
+            z-index: 998;
+
+
+
+        }
+
+
+
+
+
+
+
+        .overlay.active {
+
+
+
+            display: flex;
+
+
+
+        }
+
+
+
+
+
+
+
+        .overlay-content {
+
+
+
+            width: 100%;
+
+
+
+            height: 100%;
+
+
+
+            margin: 0;
+
+
+
+            
+
+
+
+            border: none;
+
+
+
+            overflow: hidden;
+
+
+
+        }
+
+
+
+
+
+
+
+        .close-btn {
+
+
+
+            position: absolute;
+
+
+
+            top: 20px;
+
+
+
+            left: 20px;
+
+
+
+            background-color: var(--background-color);
+
+
+
+            color: var(--text-color);
+
+
+
+            
+
+
+
+            border: none;
+
+
+
+            cursor: pointer;
+
+
+
+            font-size: 16px;
+
+
+
+            z-index: 10000;
+
+
+
+        }
+
+
+
+
+
+
+
+        .whatsapp-button img {
+
+
+
+            width: 40px;
+
+
+
+            height: 40px;
+
+
+
+        }
+
+
+
+        
+
+
+
+        /* لإزالة خط التسطير من جميع الروابط في صفحتك */
+
+
+
+a {
+
+
+
+    text-decoration: none;
+
+
+
+}
+
+
+
+
+
+
+
+/* لإزالة خط التسطير من عنصر معين فقط بواسطة ID */
+
+
+
+#myElementId {
+
+
+
+    text-decoration: none;
+
+
+
+}
+
+
+
+
+
+
+
+/* لإزالة خط التسطير من عنصر معين بواسطة Class */
+
+
+
+.myClassName {
+
+
+
+    text-decoration: none;
+
+
+
+}
+
+
+
+
+
+
+
+    </style>
+
+
+
+</head>
+
+
+
+<body>
+
+
+
+      <div class="header-wrapper" id="header-wrapper">
+
+
+
+        <div class="top-bar" id=" "top-bar"">
+
+
+
+            
+
+
+
+            	<div class="right-section">
+
+
+
+                         <i class="fas fa-bars" id="menu-toggle"></i>
+
+
+
             </div>
-        </div>
+
+
+
+            <div class="center-section">
+
+
+
+                
+
+
+
+                
+
+
+
+           
+
+
+
+                <div id="logozaki">
+
+
+
+        <a href="https://www.zakidev.shop">
+
+
+
+            <img id="logozaki-icon"
+
+
+
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773121626/20260310_074647_cbmma7.png"
+
+
+
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773286747/20260312_053733_x32ing.png"
+
+
+
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773286747/20260312_053733_x32ing.png"
+
+
+
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773121626/20260310_074647_cbmma7.png" style="width:165px; height:38px;" />
+
+
+
+        </a> 
+
+
+
     </div>
-   <div class="sync-status" id="syncStatus">
-                <span class="dot"></span> <span id="syncText">Local mode</span>
+
+
+
             </div>
+
+
+
+            
+
+
+
+            
+
+
+
+<div class="right-section">
+
+
+
+<a href="mailto:zakisherifdev@gmail.com"><i class="fas fa fa-envelope" id="menu-toggle"></i>
+
+
+
+
+
+
+
+
+
+
+
+</a> 
+
+
+
+    
+
+
+
+    
+
+
+
+  </body>
+
+
+
+</html>
+
+
+
+    
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="tabs">
+
+
+
+                  
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+    <div class="sidebar" id="sidebar">
+
+
+
+    	
+
+
+
+    
+
+
+
+    	     <!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+<html>
+
+
+
+  <head>
+
+
+
+    
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+
+
+    <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+
+
+
+  </head>
+
+
+
+  <style media="screen">
+
+
+
+  .carousel-cell 
+
+
+
+    width: 100%;
+
+
+
+    
+
+
+
+
+
+
+
+    
+
+
+
+  </style>
+
+
+
+  <body>
+
+
+
+    
+
+
+
+
+
+
+
+      <div class="carousel-cell">
+
+
+
+<img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773106297/20260308_060345_qhu1zw.png" alt="App logo" class="logo-image">
+
+
+
+
+
+
+
+      </div>   
+
+
+
+</a> 
+
+
+
+    
+
+
+
+  </body>
+
+
+
+</html>
+
+
+
+
+
+
+
+        
+
+
+
+<!DOCTYPE html>
+
+
+
+<html lang="ar" dir="en">
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>قائمة أيقونات بمسافة قسرية وروابط</title>
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+
+   <style>
+
+
+
+        ul {
+
+
+
+            list-style: none; /* إزالة النقاط الافتراضية للقائمة */
+
+
+
+            
+
+
+
+            width: 255px; /* عرض مثال للقائمة */
+
+
+
+            border-radius: 8px;
+
+
+
+        }
+
+
+
+
+
+
+
+        /* الفئة الجديدة لعناصر القائمة لزيادة خصوصية CSS */
+
+
+
+        .icon-text-item {
+
+
+
+            padding: 12px 15px;
+
+
+
+            border-bottom: 1px solid #eee;
+
+
+
+            display: flex; /* لاستخدام flexbox لمحاذاة الأيقونة والنص */
+
+
+
+            align-items: center; /* لمحاذاة العناصر عموديا في المنتصف */
+
+
+
+            cursor: pointer; /* للإشارة إلى أنه قابل للنقر */
+
+
+
+            transition: background-color 0.3s ease;
+
+
+
+            font-size: 1.1em;
+
+
+
+        }
+
+
+
+
+
+
+
+        .icon-text-item:last-child {
+
+
+
+            border-bottom: none; /* إزالة الحدود من العنصر الأخير */
+
+
+
+        }
+
+
+
+
+
+
+
+        .icon-text-item:hover {
+
+
+
+            background-color: #E0E7ED; /* تأثير عند تمرير المؤشر */
+
+
+
+        }
+
+
+
+        
+
+
+
+        
+
+
+
+        
+
+
+
+        
+
+
+
+        
+
+
+
+        
+
+
+
+
+
+
+
+        /* إضافة مسافة بين الأيقونة والنص في القائمة الجانبية */
+
+
+
+.icon-text-item a {
+
+
+
+    display: flex;
+
+
+
+    align-items: center;
+
+
+
+    gap: 15px; /* مسافة ثابتة بين الأيقونة والنص */
+
+
+
+    width: 100%;
+
+
+
+}
+
+
+
+
+
+
+
+.icon-text-item i {
+
+
+
+    margin-left: 0; /* إزالة الهامش القديم */
+
+
+
+    width: 20px; /* عرض ثابت للأيقونة */
+
+
+
+    text-align: center;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* استهداف الأيقونات داخل القائمة */
+
+
+
+.icon-text-item i.fas {
+
+
+
+    font-size: 22px; /* حجم الأيقونة، يمكنك تغييره حسب الحاجة */
+
+
+
+        vertical-align: middle; /* محاذاة الأيقونة مع النص */
+
+
+
+}
+
+
+
+
+
+
+
+/* لتخصيص حجم النصوص إذا لزم الأمر */
+
+
+
+.icon-text-item a {
+
+
+
+    font-size: 18px; /* حجم النص */
+
+
+
+    display: flex;
+
+
+
+    align-items: center; /* محاذاة النص مع الأيقونة */
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+    </style>
+
+
+
+</head>
+
+
+
+<body>
+
+
+
+<script src="https://kit.fontawesome.com/2b7b2389d3.js"></script>
+
+
+
+    <ul>
+
+
+
+            <li class="icon-text-item"><a href="#"><i class="fas fa-home"></i><p id="menu34"><b>Home page 🔹 </b></p></a></li>
+
+
+
+            <li class="icon-text-item"><a href="https://www.sitezapk.online"><i class="fa fa-edit" style="font-size: 24px;"></i><p id="menu36" ><b>Service request</b></p></a></li>
+
+
+
+            <li class="icon-text-item"><a href="https://ko-fi.com/zakisharifdev"><i class="fas fa-heart"></i><p id="menu41"><b>Support us</b></p></a></li>
+
+
+
+            <li class="icon-text-item"><a onclick="toggleTheme()"><i class="fas fa-moon icon" style="font-size: 28px;"></i><p id="menu41"><b>Changing the sky</b></p></a></li>
+
+
+
+                
+
+            </b></p></a></li>
+
+
+
+    </ul>
+
+
+
+
+
+
+
+</body>
+
+
+
+</html>
+
+
+
+
+
+
+
+<style type="text/css">
+
+
+
+* { user-select: none; margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+
+
+body { font-family: Arial, sans-serif; }
+
+
+
+.poster { overflow-x: scroll; overflow-y: hidden; white-space: nowrap; margin: 3px; text-align: center; }
+
+
+
+.image-container { display: inline-block; margin: 5px; text-align: center; }
+
+
+
+.image-container img { display: block; margin: 0 auto; }
+
+
+
+.image-container p { font-size: 14px; margin-top: 5px; font-weight: bold; }
+
+
+
+
+
+
+
+/* أزرار تغيير اللغة */
+
+
+
+.lang-buttons {
+
+
+
+    text-align: center;
+
+
+
+    margin: 10px 0;
+
+
+
+}
+
+
+
+.lang-buttons button {
+
+
+
+    padding: 10px 20px;
+
+
+
+    margin: 0 5px;
+
+
+
+    font-size: 16px;
+
+
+
+    cursor: pointer;
+
+
+
+    background-color: #4CAF50;
+
+
+
+    color: white;
+
+
+
+    border: none;
+
+
+
+    border-radius: 5px;
+
+
+
+}
+
+
+
+.lang-buttons button:hover {
+
+
+
+    background-color: #45a049;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+html[lang="en"] .sidebar {
+
+
+
+    right: auto;
+
+
+
+    left: -300px;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+html[lang="en"] .sidebar {
+
+
+
+    right: auto;
+
+
+
+    left: -300px;
+
+
+
+}
+
+
+
+
+
+
+
+html[lang="en"] .sidebar.active {
+
+
+
+    left: 0;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+html[lang="zh"] .sidebar {
+
+
+
+    right: auto;
+
+
+
+    left: -300px;
+
+
+
+}
+
+
+
+
+
+
+
+html[lang="zh"] .sidebar.active {
+
+
+
+    left: 0;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+html[lang="id"] .sidebar {
+
+
+
+    right: auto;
+
+
+
+    left: -300px;
+
+
+
+}
+
+
+
+
+
+
+
+html[lang="id"] .sidebar.active {
+
+
+
+    left: 0;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</style>
+
+
+
+<!DOCTYPE html>
+
+
+
+<html lang="ar" dir="en">
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>قائمة الأدوات الاحترافية (مع Font Awesome)</title>
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+
+    <style>
+
+
+
+               {
+
+
+
+            font-family: Arial, sans-serif;
+
+
+
+            
+
+
+
+            
+
+
+
+            margin: 0;
+
+
+
+            
+
+
+
+            display: flex;
+
+
+
+            justify-content: center;
+
+
+
+            align-items: flex-start; /* لتبدأ من الأعلى */
+
+
+
+            min-height: 100vh;
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-item {
+
+
+
+            width: 100%;
+
+
+
+            max-width: 400px; /* تحديد أقصى عرض للعنصر */
+
+
+
+            margin-bottom: 10px;
+
+
+
+            border-radius: 8px;
+
+
+
+            overflow: hidden; /* لضمان عدم تجاوز المحتوى للحدود الدائرية */
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-header {
+
+
+
+            
+
+
+
+            
+
+
+
+            cursor: pointer;
+
+
+
+            display: flex;
+
+
+
+            justify-content: space-between;
+
+
+
+            align-items: center;
+
+
+
+            font-weight: bold;
+
+
+
+            font-size: 1.1em;
+
+
+
+            border-bottom: 3px 
+
+
+
+            transition: background-color 0.3s ease;
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-header:hover {
+
+
+
+            
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-header .arrow {
+
+
+
+            transition: transform 0.3s ease;
+
+
+
+            font-size: 1.2em; /* حجم أكبر للسهم */
+
+
+
+        }
+
+
+
+
+
+
+
+        /* سهم Font Awesome الافتراضي (لأسفل) */
+
+
+
+        .accordion-header .arrow.fa-chevron-down {
+
+
+
+            transform: rotate(0deg); /* تأكد من أنه غير مدور افتراضيا */
+
+
+
+        }
+
+
+
+
+
+
+
+        /* تدوير السهم لأعلى عند التفعيل */
+
+
+
+        .accordion-header.active .arrow.fa-chevron-down {
+
+
+
+            transform: rotate(180deg); /* تدوير 180 درجة ليصبح للأعلى */
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+        .accordion-content {
+
+
+
+            
+
+
+
+            max-height: 0; /* إخفاء المحتوى في البداية */
+
+
+
+            overflow: hidden;
+
+
+
+            transition: max-height 0.4s ease-out; /* حركة سلسة للفتح والإغلاق */
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-content.open {
+
+
+
+            /* يتم ضبط max-height بواسطة JavaScript */
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-content-inner {
+
+
+
+         
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-option {
+
+
+
+            display: flex;
+
+
+
+            align-items: center;
+
+
+
+            padding: 10px 0;
+
+
+
+            text-decoration: none;
+
+
+
+            
+
+
+
+            transition: background-color 0.3s ease;
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-option:hover {
+
+
+
+            
+
+
+
+        }
+
+
+
+
+
+
+
+        .accordion-option .icon {
+
+
+
+            margin-left: 10px; /* مسافة بين الأيقونة والنص */
+
+
+
+            font-size: 1.2em;
+
+
+
+            width: 20px; /* لتثبيت عرض الأيقونة ومنع تذبذب النص */
+
+
+
+            text-align: center; /* لتوسيط الأيقونة داخل عرضها */
+
+
+
+        }
+
+
+
+    </style>
+
+
+
+</head>
+
+
+
+<body>
+
+
+
+
+
+
+
+    <div class="accordion-item">
+
+
+
+        <div class="accordion-header" id="professionalToolsHeader">
+
+
+
+        	
+
+
+
+        <li class="icon-text-item"><i class="fas fa-chevron-down arrow"></i><p id="menu57"><b>.Advanced settings</b></p></a></li>
+
+
+
+</i> </div>
+
+
+
+
+
+
+
+        <div class="accordion-content" id="professionalToolsContent">
+
+
+
+            <div class="accordion-content-inner">
+
+
+
+            	
+
+
+
+             <li class="icon-text-item">
+
+
+
+            <a href="mailto:zakisherifdev@gmail.com"><i class="fas fa fa-exclamation-triangle"></i> <span id="menu54">Report a problem</span></a>
+
+
+
+        </li>
+
+
+
+        <li class="icon-text-item">
+
+
+
+            <a href="mailto:zakisherifdev@gmail.com"><i class="fas fa fa-envelope"></i> <span id="menu55">Contact us</span></a>
+
+
+
+        </li>
+
+
+
+        <li class="icon-text-item">
+
+
+
+            <a href="https://www.freeprivacypolicy.com/live/4727808a-9831-4398-a785-40bf13767d4d"><i class="fas fa fa-check-square-o"></i> <span id="menu56">Privacy Policy</span></a>
+
+
+
+        </li>
+
+
+
+          
+
+          
+
+          
+
+          
+
+          
+
+
+
+     </div>
+
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+
 
     <script>
-        // ═══════════════════════════════════════════════
-        // TRANSLATIONS (10 Languages)
-        // ═══════════════════════════════════════════════
-        const TRANSLATIONS = {
-            en: {
-                signIn: "Sign In", createAccount: "Create Account", noAccount: "No account?",
-                email: "Email", password: "Password", continueWithout: "⏭️ Continue without Sign In",
-                addNewAccount: "Add New Account", quickSelect: "🏦 Quick Select",
-                customAccount: "✏️ Or add custom account", accountName: "Account name (e.g. Binance)",
-                selectType: "Select image type...", imageURL: "Image URL", uploadDevice: "Upload from device",
-                add: "Add", cancel: "Cancel", confirmDelete: "Confirm Delete",
-                deleteMsg: "Are you sure you want to delete this account?", deleteBtn: "Delete",
-                logout: "Logout", total: "Total", amountCollected: "The amount collected",
-                desiredGoal: "Desired goal", localMode: "Local mode", cloudSync: "Synced with cloud",
-                offlineMode: "Offline mode", adultContent: "⚠️ Adult content not allowed",
-                enterName: "Please enter account name", selectImageType: "Please select image type",
-                enterURL: "Please enter image URL", selectImage: "Please select an image",
-                fillFields: "Please fill all fields", passwordLength: "Password must be at least 6 characters",
-                invalidEmail: "Invalid email", userDisabled: "This account is disabled",
-                userNotFound: "No account found with this email", wrongPassword: "Incorrect password",
-                emailInUse: "This email is already in use", weakPassword: "Password is too weak",
-                networkError: "Network connection failed", apiKeyError: "Invalid API key",
-                operationNotAllowed: "Email sign-in not enabled in Firebase",
-                logoutConfirm: "Are you sure you want to logout?", open: "Open",
-                locTitle: "Location Access", locMessage: "Allow access to your location to automatically set the appropriate language for your country?",
-                locAllow: "Allow", locDeny: "Not Now",
-                settings: "Settings", language: "Language", selectLanguage: "Select Language",
-                appearance: "Appearance", darkMode: "Dark Mode", currency: "Currency",
-                selectCurrency: "Select Currency", close: "Close", longPressToDelete: "Long press to delete"
-            },
-            ar: {
-                signIn: "تسجيل الدخول", createAccount: "إنشاء حساب", noAccount: "ليس لديك حساب؟",
-                email: "البريد الإلكتروني", password: "كلمة المرور", continueWithout: "⏭️ متابعة بدون تسجيل دخول",
-                addNewAccount: "إضافة حساب جديد", quickSelect: "🏦 اختيار جاهز",
-                customAccount: "✏️ أو إضافة حساب مخصص", accountName: "اسم الحساب (مثال: Binance)",
-                selectType: "اختر نوع الصورة...", imageURL: "رابط صورة", uploadDevice: "رفع من الجهاز",
-                add: "إضافة", cancel: "إلغاء", confirmDelete: "تأكيد الحذف",
-                deleteMsg: "هل أنت متأكد من حذف هذا الحساب؟", deleteBtn: "حذف",
-                logout: "خروج", total: "المجموع", amountCollected: "المبلغ المحصل",
-                desiredGoal: "الهدف المطلوب", localMode: "وضع محلي", cloudSync: "متزامن مع السحابة",
-                offlineMode: "وضع عدم الاتصال", adultContent: "⚠️ لا يمكن استخدام صورة إباحية",
-                enterName: "يرجى إدخال اسم الحساب", selectImageType: "يرجى اختيار نوع الصورة",
-                enterURL: "يرجى إدخال رابط الصورة", selectImage: "يرجى اختيار صورة",
-                fillFields: "يرجى ملء جميع الحقول", passwordLength: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-                invalidEmail: "البريد الإلكتروني غير صالح", userDisabled: "هذا الحساب معطل",
-                userNotFound: "لا يوجد حساب بهذا البريد", wrongPassword: "كلمة المرور غير صحيحة",
-                emailInUse: "هذا البريد مستخدم بالفعل", weakPassword: "كلمة المرور ضعيفة جداً",
-                networkError: "فشل الاتصال بالشبكة", apiKeyError: "مفتاح API غير صالح",
-                operationNotAllowed: "تسجيل الدخول بالبريد غير مفعل في Firebase",
-                logoutConfirm: "هل تريد تسجيل الخروج؟", open: "مفتوح",
-                locTitle: "الوصول للموقع", locMessage: "السماح بالوصول إلى موقعك لتحديد اللغة المناسبة لبلدك تلقائياً؟",
-                locAllow: "سماح", locDeny: "ليس الآن",
-                settings: "الإعدادات", language: "اللغة", selectLanguage: "اختر اللغة",
-                appearance: "المظهر", darkMode: "الوضع الداكن", currency: "العملة",
-                selectCurrency: "اختر العملة", close: "إغلاق", longPressToDelete: "اضغط مطولاً للحذف"
-            },
-            fr: {
-                signIn: "Connexion", createAccount: "Créer un compte", noAccount: "Pas de compte ?",
-                email: "E-mail", password: "Mot de passe", continueWithout: "⏭️ Continuer sans connexion",
-                addNewAccount: "Ajouter un compte", quickSelect: "🏦 Sélection rapide",
-                customAccount: "✏️ Ou ajouter un compte personnalisé", accountName: "Nom du compte (ex: Binance)",
-                selectType: "Sélectionnez le type d'image...", imageURL: "URL de l'image", uploadDevice: "Télécharger depuis l'appareil",
-                add: "Ajouter", cancel: "Annuler", confirmDelete: "Confirmer la suppression",
-                deleteMsg: "Êtes-vous sûr de vouloir supprimer ce compte ?", deleteBtn: "Supprimer",
-                logout: "Déconnexion", total: "Total", amountCollected: "Montant collecté",
-                desiredGoal: "Objectif souhaité", localMode: "Mode local", cloudSync: "Synchronisé avec le cloud",
-                offlineMode: "Mode hors ligne", adultContent: "⚠️ Contenu adulte non autorisé",
-                enterName: "Veuillez entrer le nom du compte", selectImageType: "Veuillez sélectionner le type d'image",
-                enterURL: "Veuillez entrer l'URL de l'image", selectImage: "Veuillez sélectionner une image",
-                fillFields: "Veuillez remplir tous les champs", passwordLength: "Le mot de passe doit contenir au moins 6 caractères",
-                invalidEmail: "E-mail invalide", userDisabled: "Ce compte est désactivé",
-                userNotFound: "Aucun compte trouvé avec cet e-mail", wrongPassword: "Mot de passe incorrect",
-                emailInUse: "Cet e-mail est déjà utilisé", weakPassword: "Mot de passe trop faible",
-                networkError: "Échec de la connexion réseau", apiKeyError: "Clé API invalide",
-                operationNotAllowed: "La connexion par e-mail n'est pas activée dans Firebase",
-                logoutConfirm: "Voulez-vous vous déconnecter ?", open: "Ouvert",
-                locTitle: "Accès à la localisation", locMessage: "Autoriser l'accès à votre localisation pour définir automatiquement la langue appropriée pour votre pays ?",
-                locAllow: "Autoriser", locDeny: "Pas maintenant",
-                settings: "Paramètres", language: "Langue", selectLanguage: "Choisir la langue",
-                appearance: "Apparence", darkMode: "Mode sombre", currency: "Devise",
-                selectCurrency: "Choisir la devise", close: "Fermer", longPressToDelete: "Appui long pour supprimer"
-            },
-            es: {
-                signIn: "Iniciar sesión", createAccount: "Crear cuenta", noAccount: "¿No tienes cuenta?",
-                email: "Correo electrónico", password: "Contraseña", continueWithout: "⏭️ Continuar sin iniciar sesión",
-                addNewAccount: "Agregar cuenta", quickSelect: "🏦 Selección rápida",
-                customAccount: "✏️ O agregar cuenta personalizada", accountName: "Nombre de la cuenta (ej: Binance)",
-                selectType: "Seleccione tipo de imagen...", imageURL: "URL de imagen", uploadDevice: "Subir desde dispositivo",
-                add: "Agregar", cancel: "Cancelar", confirmDelete: "Confirmar eliminación",
-                deleteMsg: "¿Estás seguro de eliminar esta cuenta?", deleteBtn: "Eliminar",
-                logout: "Cerrar sesión", total: "Total", amountCollected: "Monto recaudado",
-                desiredGoal: "Objetivo deseado", localMode: "Modo local", cloudSync: "Sincronizado con la nube",
-                offlineMode: "Modo sin conexión", adultContent: "⚠️ Contenido para adultos no permitido",
-                enterName: "Por favor ingrese el nombre de la cuenta", selectImageType: "Por favor seleccione el tipo de imagen",
-                enterURL: "Por favor ingrese la URL de la imagen", selectImage: "Por favor seleccione una imagen",
-                fillFields: "Por favor complete todos los campos", passwordLength: "La contraseña debe tener al menos 6 caracteres",
-                invalidEmail: "Correo electrónico inválido", userDisabled: "Esta cuenta está deshabilitada",
-                userNotFound: "No se encontró cuenta con este correo", wrongPassword: "Contraseña incorrecta",
-                emailInUse: "Este correo ya está en uso", weakPassword: "Contraseña demasiado débil",
-                networkError: "Error de conexión de red", apiKeyError: "Clave API inválida",
-                operationNotAllowed: "Inicio de sesión por correo no habilitado en Firebase",
-                logoutConfirm: "¿Deseas cerrar sesión?", open: "Abierto",
-                locTitle: "Acceso a ubicación", locMessage: "¿Permitir acceso a tu ubicación para configurar automáticamente el idioma adecuado para tu país?",
-                locAllow: "Permitir", locDeny: "Ahora no",
-                settings: "Ajustes", language: "Idioma", selectLanguage: "Seleccionar idioma",
-                appearance: "Apariencia", darkMode: "Modo oscuro", currency: "Moneda",
-                selectCurrency: "Seleccionar moneda", close: "Cerrar", longPressToDelete: "Mantén presionado para eliminar"
-            },
-            it: {
-                signIn: "Accedi", createAccount: "Crea account", noAccount: "Non hai un account?",
-                email: "E-mail", password: "Password", continueWithout: "⏭️ Continua senza accesso",
-                addNewAccount: "Aggiungi account", quickSelect: "🏦 Selezione rapida",
-                customAccount: "✏️ O aggiungi account personalizzato", accountName: "Nome account (es: Binance)",
-                selectType: "Seleziona tipo di immagine...", imageURL: "URL immagine", uploadDevice: "Carica da dispositivo",
-                add: "Aggiungi", cancel: "Annulla", confirmDelete: "Conferma eliminazione",
-                deleteMsg: "Sei sicuro di voler eliminare questo account?", deleteBtn: "Elimina",
-                logout: "Disconnetti", total: "Totale", amountCollected: "Importo raccolto",
-                desiredGoal: "Obiettivo desiderato", localMode: "Modalità locale", cloudSync: "Sincronizzato con il cloud",
-                offlineMode: "Modalità offline", adultContent: "⚠️ Contenuto per adulti non consentito",
-                enterName: "Inserisci il nome dell'account", selectImageType: "Seleziona il tipo di immagine",
-                enterURL: "Inserisci l'URL dell'immagine", selectImage: "Seleziona un'immagine",
-                fillFields: "Compila tutti i campi", passwordLength: "La password deve contenere almeno 6 caratteri",
-                invalidEmail: "E-mail non valida", userDisabled: "Questo account è disabilitato",
-                userNotFound: "Nessun account trovato con questa e-mail", wrongPassword: "Password errata",
-                emailInUse: "Questa e-mail è già in uso", weakPassword: "Password troppo debole",
-                networkError: "Connessione di rete fallita", apiKeyError: "Chiave API non valida",
-                operationNotAllowed: "Accesso e-mail non abilitato in Firebase",
-                logoutConfirm: "Vuoi disconnetterti?", open: "Aperto",
-                locTitle: "Accesso alla posizione", locMessage: "Consentire l'accesso alla tua posizione per impostare automaticamente la lingua appropriata per il tuo paese?",
-                locAllow: "Consenti", locDeny: "Non ora",
-                settings: "Impostazioni", language: "Lingua", selectLanguage: "Seleziona lingua",
-                appearance: "Aspetto", darkMode: "Modalità scura", currency: "Valuta",
-                selectCurrency: "Seleziona valuta", close: "Chiudi", longPressToDelete: "Premi a lungo per eliminare"
-            },
-            de: {
-                signIn: "Anmelden", createAccount: "Konto erstellen", noAccount: "Kein Konto?",
-                email: "E-Mail", password: "Passwort", continueWithout: "⏭️ Ohne Anmeldung fortfahren",
-                addNewAccount: "Konto hinzufügen", quickSelect: "🏦 Schnellauswahl",
-                customAccount: "✏️ Oder benutzerdefiniertes Konto", accountName: "Kontoname (z.B. Binance)",
-                selectType: "Bildtyp auswählen...", imageURL: "Bild-URL", uploadDevice: "Vom Gerät hochladen",
-                add: "Hinzufügen", cancel: "Abbrechen", confirmDelete: "Löschen bestätigen",
-                deleteMsg: "Sind Sie sicher, dass Sie dieses Konto löschen möchten?", deleteBtn: "Löschen",
-                logout: "Abmelden", total: "Gesamt", amountCollected: "Gesammelter Betrag",
-                desiredGoal: "Gewünschtes Ziel", localMode: "Lokaler Modus", cloudSync: "Mit Cloud synchronisiert",
-                offlineMode: "Offline-Modus", adultContent: "⚠️ Erotische Inhalte nicht erlaubt",
-                enterName: "Bitte Kontonamen eingeben", selectImageType: "Bitte Bildtyp auswählen",
-                enterURL: "Bitte Bild-URL eingeben", selectImage: "Bitte Bild auswählen",
-                fillFields: "Bitte alle Felder ausfüllen", passwordLength: "Passwort muss mindestens 6 Zeichen lang sein",
-                invalidEmail: "Ungültige E-Mail", userDisabled: "Dieses Konto ist deaktiviert",
-                userNotFound: "Kein Konto mit dieser E-Mail gefunden", wrongPassword: "Falsches Passwort",
-                emailInUse: "Diese E-Mail wird bereits verwendet", weakPassword: "Passwort zu schwach",
-                networkError: "Netzwerkverbindung fehlgeschlagen", apiKeyError: "Ungültiger API-Schlüssel",
-                operationNotAllowed: "E-Mail-Anmeldung in Firebase nicht aktiviert",
-                logoutConfirm: "Möchten Sie sich abmelden?", open: "Offen",
-                locTitle: "Standortzugriff", locMessage: "Zugriff auf Ihren Standort erlauben, um die passende Sprache für Ihr Land automatisch festzulegen?",
-                locAllow: "Erlauben", locDeny: "Nicht jetzt",
-                settings: "Einstellungen", language: "Sprache", selectLanguage: "Sprache auswählen",
-                appearance: "Erscheinungsbild", darkMode: "Dunkelmodus", currency: "Währung",
-                selectCurrency: "Währung auswählen", close: "Schließen", longPressToDelete: "Lange drücken zum Löschen"
-            },
-            pt: {
-                signIn: "Entrar", createAccount: "Criar conta", noAccount: "Não tem conta?",
-                email: "E-mail", password: "Senha", continueWithout: "⏭️ Continuar sem entrar",
-                addNewAccount: "Adicionar conta", quickSelect: "🏦 Seleção rápida",
-                customAccount: "✏️ Ou adicionar conta personalizada", accountName: "Nome da conta (ex: Binance)",
-                selectType: "Selecione o tipo de imagem...", imageURL: "URL da imagem", uploadDevice: "Enviar do dispositivo",
-                add: "Adicionar", cancel: "Cancelar", confirmDelete: "Confirmar exclusão",
-                deleteMsg: "Tem certeza que deseja excluir esta conta?", deleteBtn: "Excluir",
-                logout: "Sair", total: "Total", amountCollected: "Quantia arrecadada",
-                desiredGoal: "Meta desejada", localMode: "Modo local", cloudSync: "Sincronizado com a nuvem",
-                offlineMode: "Modo offline", adultContent: "⚠️ Conteúdo adulto não permitido",
-                enterName: "Por favor, insira o nome da conta", selectImageType: "Por favor, selecione o tipo de imagem",
-                enterURL: "Por favor, insira a URL da imagem", selectImage: "Por favor, selecione uma imagem",
-                fillFields: "Por favor, preencha todos os campos", passwordLength: "A senha deve ter pelo menos 6 caracteres",
-                invalidEmail: "E-mail inválido", userDisabled: "Esta conta está desativada",
-                userNotFound: "Nenhuma conta encontrada com este e-mail", wrongPassword: "Senha incorreta",
-                emailInUse: "Este e-mail já está em uso", weakPassword: "Senha muito fraca",
-                networkError: "Falha na conexão de rede", apiKeyError: "Chave API inválida",
-                operationNotAllowed: "Login por e-mail não habilitado no Firebase",
-                logoutConfirm: "Deseja sair?", open: "Aberto",
-                locTitle: "Acesso à localização", locMessage: "Permitir acesso à sua localização para definir automaticamente o idioma apropriado para o seu país?",
-                locAllow: "Permitir", locDeny: "Agora não",
-                settings: "Configurações", language: "Idioma", selectLanguage: "Selecionar idioma",
-                appearance: "Aparência", darkMode: "Modo escuro", currency: "Moeda",
-                selectCurrency: "Selecionar moeda", close: "Fechar", longPressToDelete: "Pressione longamente para excluir"
-            },
-            tr: {
-                signIn: "Giriş Yap", createAccount: "Hesap Oluştur", noAccount: "Hesabınız yok mu?",
-                email: "E-posta", password: "Şifre", continueWithout: "⏭️ Giriş yapmadan devam et",
-                addNewAccount: "Yeni Hesap Ekle", quickSelect: "🏦 Hızlı Seçim",
-                customAccount: "✏️ Veya özel hesap ekle", accountName: "Hesap adı (ör: Binance)",
-                selectType: "Görsel türü seçin...", imageURL: "Görsel URL'si", uploadDevice: "Cihazdan yükle",
-                add: "Ekle", cancel: "İptal", confirmDelete: "Silme Onayı",
-                deleteMsg: "Bu hesabı silmek istediğinizden emin misiniz?", deleteBtn: "Sil",
-                logout: "Çıkış", total: "Toplam", amountCollected: "Toplanan miktar",
-                desiredGoal: "Hedeflenen hedef", localMode: "Yerel mod", cloudSync: "Bulutla senkronize",
-                offlineMode: "Çevrimdışı mod", adultContent: "⚠️ Yetişkin içeriğine izin verilmez",
-                enterName: "Lütfen hesap adını girin", selectImageType: "Lütfen görsel türünü seçin",
-                enterURL: "Lütfen görsel URL'sini girin", selectImage: "Lütfen bir görsel seçin",
-                fillFields: "Lütfen tüm alanları doldurun", passwordLength: "Şifre en az 6 karakter olmalıdır",
-                invalidEmail: "Geçersiz e-posta", userDisabled: "Bu hesap devre dışı",
-                userNotFound: "Bu e-posta ile hesap bulunamadı", wrongPassword: "Yanlış şifre",
-                emailInUse: "Bu e-posta zaten kullanılıyor", weakPassword: "Şifre çok zayıf",
-                networkError: "Ağ bağlantısı başarısız", apiKeyError: "Geçersiz API anahtarı",
-                operationNotAllowed: "Firebase'de e-posta girişi etkin değil",
-                logoutConfirm: "Çıkış yapmak istiyor musunuz?", open: "Açık",
-                locTitle: "Konum Erişimi", locMessage: "Ülkeniz için uygun dili otomatik olarak ayarlamak için konumunuza erişime izin verin?",
-                locAllow: "İzin Ver", locDeny: "Şimdi Değil",
-                settings: "Ayarlar", language: "Dil", selectLanguage: "Dil seçin",
-                appearance: "Görünüm", darkMode: "Karanlık mod", currency: "Para birimi",
-                selectCurrency: "Para birimi seçin", close: "Kapat", longPressToDelete: "Silmek için uzun basın"
-            },
-            nl: {
-                signIn: "Inloggen", createAccount: "Account aanmaken", noAccount: "Geen account?",
-                email: "E-mail", password: "Wachtwoord", continueWithout: "⏭️ Doorgaan zonder inloggen",
-                addNewAccount: "Account toevoegen", quickSelect: "🏦 Snelle selectie",
-                customAccount: "✏️ Of aangepast account toevoegen", accountName: "Accountnaam (bijv. Binance)",
-                selectType: "Selecteer afbeeldingstype...", imageURL: "Afbeelding URL", uploadDevice: "Uploaden van apparaat",
-                add: "Toevoegen", cancel: "Annuleren", confirmDelete: "Verwijderen bevestigen",
-                deleteMsg: "Weet u zeker dat u dit account wilt verwijderen?", deleteBtn: "Verwijderen",
-                logout: "Uitloggen", total: "Totaal", amountCollected: "Verzameld bedrag",
-                desiredGoal: "Gewenst doel", localMode: "Lokale modus", cloudSync: "Gesynchroniseerd met cloud",
-                offlineMode: "Offline modus", adultContent: "⚠️ Volwassen inhoud niet toegestaan",
-                enterName: "Voer accountnaam in", selectImageType: "Selecteer afbeeldingstype",
-                enterURL: "Voer afbeelding URL in", selectImage: "Selecteer een afbeelding",
-                fillFields: "Vul alle velden in", passwordLength: "Wachtwoord moet minimaal 6 tekens bevatten",
-                invalidEmail: "Ongeldige e-mail", userDisabled: "Dit account is uitgeschakeld",
-                userNotFound: "Geen account gevonden met dit e-mailadres", wrongPassword: "Onjuist wachtwoord",
-                emailInUse: "Dit e-mailadres is al in gebruik", weakPassword: "Wachtwoord te zwak",
-                networkError: "Netwerkverbinding mislukt", apiKeyError: "Ongeldige API-sleutel",
-                operationNotAllowed: "E-mail inloggen niet ingeschakeld in Firebase",
-                logoutConfirm: "Weet u zeker dat u wilt uitloggen?", open: "Open",
-                locTitle: "Locatietoegang", locMessage: "Toegang tot uw locatie toestaan om automatisch de juiste taal voor uw land in te stellen?",
-                locAllow: "Toestaan", locDeny: "Niet nu",
-                settings: "Instellingen", language: "Taal", selectLanguage: "Selecteer taal",
-                appearance: "Weergave", darkMode: "Donkere modus", currency: "Valuta",
-                selectCurrency: "Selecteer valuta", close: "Sluiten", longPressToDelete: "Lang indrukken om te verwijderen"
-            },
-            pl: {
-                signIn: "Zaloguj się", createAccount: "Utwórz konto", noAccount: "Nie masz konta?",
-                email: "E-mail", password: "Hasło", continueWithout: "⏭️ Kontynuuj bez logowania",
-                addNewAccount: "Dodaj konto", quickSelect: "🏦 Szybki wybór",
-                customAccount: "✏️ Lub dodaj niestandardowe konto", accountName: "Nazwa konta (np. Binance)",
-                selectType: "Wybierz typ obrazu...", imageURL: "URL obrazu", uploadDevice: "Prześlij z urządzenia",
-                add: "Dodaj", cancel: "Anuluj", confirmDelete: "Potwierdź usunięcie",
-                deleteMsg: "Czy na pewno chcesz usunąć to konto?", deleteBtn: "Usuń",
-                logout: "Wyloguj", total: "Suma", amountCollected: "Zebrana kwota",
-                desiredGoal: "Pożądany cel", localMode: "Tryb lokalny", cloudSync: "Zsynchronizowane z chmurą",
-                offlineMode: "Tryb offline", adultContent: "⚠️ Treści dla dorosłych niedozwolone",
-                enterName: "Wprowadź nazwę konta", selectImageType: "Wybierz typ obrazu",
-                enterURL: "Wprowadź URL obrazu", selectImage: "Wybierz obraz",
-                fillFields: "Wypełnij wszystkie pola", passwordLength: "Hasło musi mieć co najmniej 6 znaków",
-                invalidEmail: "Nieprawidłowy e-mail", userDisabled: "To konto jest wyłączone",
-                userNotFound: "Nie znaleziono konta z tym e-mailem", wrongPassword: "Nieprawidłowe hasło",
-                emailInUse: "Ten e-mail jest już w użyciu", weakPassword: "Hasło zbyt słabe",
-                networkError: "Błąd połączenia sieciowego", apiKeyError: "Nieprawidłowy klucz API",
-                operationNotAllowed: "Logowanie e-mail nie jest włączone w Firebase",
-                logoutConfirm: "Czy chcesz się wylogować?", open: "Otwarte",
-                locTitle: "Dostęp do lokalizacji", locMessage: "Zezwolić na dostęp do lokalizacji, aby automatycznie ustawić odpowiedni język dla Twojego kraju?",
-                locAllow: "Zezwól", locDeny: "Nie teraz",
-                settings: "Ustawienia", language: "Język", selectLanguage: "Wybierz język",
-                appearance: "Wygląd", darkMode: "Tryb ciemny", currency: "Waluta",
-                selectCurrency: "Wybierz walutę", close: "Zamknij", longPressToDelete: "Przytrzymaj, aby usunąć"
-            }
-        };
 
-        // Currency symbols and formatting
-        const CURRENCIES = {
-            EUR: { symbol: '€', flag: '🇪🇺', name: 'Euro' },
-            USD: { symbol: '$', flag: '🇺🇸', name: 'US Dollar' },
-            GBP: { symbol: '£', flag: '🇬🇧', name: 'British Pound' },
-            JPY: { symbol: '¥', flag: '🇯🇵', name: 'Japanese Yen' },
-            EGP: { symbol: 'E£', flag: '🇪🇬', name: 'Egyptian Pound' },
-            SAR: { symbol: '﷼', flag: '🇸🇦', name: 'Saudi Riyal' },
-            AED: { symbol: 'د.إ', flag: '🇦🇪', name: 'UAE Dirham' },
-            TRY: { symbol: '₺', flag: '🇹🇷', name: 'Turkish Lira' },
-            INR: { symbol: '₹', flag: '🇮🇳', name: 'Indian Rupee' },
-            CNY: { symbol: '¥', flag: '🇨🇳', name: 'Chinese Yuan' },
-            KRW: { symbol: '₩', flag: '🇰🇷', name: 'South Korean Won' },
-            RUB: { symbol: '₽', flag: '🇷🇺', name: 'Russian Ruble' },
-            BRL: { symbol: 'R$', flag: '🇧🇷', name: 'Brazilian Real' },
-            CAD: { symbol: 'C$', flag: '🇨🇦', name: 'Canadian Dollar' },
-            AUD: { symbol: 'A$', flag: '🇦🇺', name: 'Australian Dollar' },
-            CHF: { symbol: 'Fr', flag: '🇨🇭', name: 'Swiss Franc' },
-            SEK: { symbol: 'kr', flag: '🇸🇪', name: 'Swedish Krona' },
-            NOK: { symbol: 'kr', flag: '🇳🇴', name: 'Norwegian Krone' },
-            DKK: { symbol: 'kr', flag: '🇩🇰', name: 'Danish Krone' },
-            PLN: { symbol: 'zł', flag: '🇵🇱', name: 'Polish Zloty' }
-        };
 
-        let currentCurrency = localStorage.getItem('currency') || 'EUR';
-        let currentLang = localStorage.getItem('language') || 'en';
-        let locationPermissionAsked = localStorage.getItem('locationAsked') === 'true';
 
-        function getCurrencySymbol() {
-            return CURRENCIES[currentCurrency]?.symbol || '€';
-        }
+        const header = document.getElementById('professionalToolsHeader');
 
-        function formatAmount(amount) {
-            const symbol = getCurrencySymbol();
-            if (currentCurrency === 'JPY' || currentCurrency === 'KRW') {
-                return symbol + Math.round(amount).toLocaleString('en-US');
-            }
-            return symbol + (amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
 
-        function detectLanguageFromBrowser() {
-            const browserLang = navigator.language || navigator.userLanguage;
-            if (browserLang) {
-                const langCode = browserLang.split('-')[0].toLowerCase();
-                const supported = ['en', 'ar', 'fr', 'es', 'it', 'de', 'pt', 'tr', 'nl', 'pl'];
-                if (supported.includes(langCode)) return langCode;
-            }
-            try {
-                const locale = new Intl.DateTimeFormat().resolvedOptions().locale;
-                const langCode = locale.split('-')[0].toLowerCase();
-                const supported = ['en', 'ar', 'fr', 'es', 'it', 'de', 'pt', 'tr', 'nl', 'pl'];
-                if (supported.includes(langCode)) return langCode;
-            } catch(e) {}
-            return 'en';
-        }
 
-        function detectLanguageFromCountry(countryCode) {
-            if (!countryCode) return null;
-            const lang = COUNTRY_LANG_MAP[countryCode.toUpperCase()];
-            return lang || null;
-        }
+        const content = document.getElementById('professionalToolsContent');
 
-        function askForLocation() {
-            if (locationPermissionAsked) return;
-            document.getElementById('locationModal').classList.add('active');
-            document.getElementById('locTitle').textContent = t('locTitle');
-            document.getElementById('locMessage').textContent = t('locMessage');
-            document.getElementById('btnAllow').textContent = t('locAllow');
-            document.getElementById('btnDeny').textContent = t('locDeny');
-        }
 
-        function allowLocation() {
-            localStorage.setItem('locationAsked', 'true');
-            document.getElementById('locationModal').classList.remove('active');
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`)
-                            .then(res => res.json())
-                            .then(data => {
-                                const countryCode = data.countryCode;
-                                const detectedLang = detectLanguageFromCountry(countryCode);
-                                if (detectedLang && detectedLang !== currentLang) {
-                                    currentLang = detectedLang;
-                                    localStorage.setItem('language', currentLang);
-                                    document.getElementById('langSelect').value = currentLang;
-                                    document.getElementById('settingsLangSelect').value = currentLang;
-                                    applyTranslations();
-                                }
-                            })
-                            .catch(() => {
-                                const detectedLang = detectLanguageFromBrowser();
-                                if (detectedLang !== currentLang) {
-                                    currentLang = detectedLang;
-                                    localStorage.setItem('language', currentLang);
-                                    document.getElementById('langSelect').value = currentLang;
-                                    document.getElementById('settingsLangSelect').value = currentLang;
-                                    applyTranslations();
-                                }
-                            });
-                    },
-                    (error) => {
-                        const detectedLang = detectLanguageFromBrowser();
-                        if (detectedLang !== currentLang) {
-                            currentLang = detectedLang;
-                            localStorage.setItem('language', currentLang);
-                            document.getElementById('langSelect').value = currentLang;
-                            document.getElementById('settingsLangSelect').value = currentLang;
-                            applyTranslations();
-                        }
-                    }
-                );
+
+
+
+
+
+        header.addEventListener('click', function() {
+
+
+
+            // تبديل فئة 'active' للرأس
+
+
+
+            header.classList.toggle('active');
+
+
+
+            // تبديل فئة 'open' للمحتوى
+
+
+
+            content.classList.toggle('open');
+
+
+
+
+
+
+
+            // إذا كان المحتوى مفتوحًا (له فئة 'open')، اضبط max-height على ارتفاعه الفعلي
+
+
+
+            if (content.classList.contains('open')) {
+
+
+
+                // استخدم scrollHeight للحصول على الارتفاع الكامل للمحتوى المخفي
+
+
+
+                content.style.maxHeight = content.scrollHeight + 'px';
+
+
+
             } else {
-                const detectedLang = detectLanguageFromBrowser();
-                if (detectedLang !== currentLang) {
-                    currentLang = detectedLang;
-                    localStorage.setItem('language', currentLang);
-                    document.getElementById('langSelect').value = currentLang;
-                    document.getElementById('settingsLangSelect').value = currentLang;
-                    applyTranslations();
-                }
+
+
+
+                content.style.maxHeight = '0'; // إغلاق المحتوى
+
+
+
             }
-        }
 
-        function denyLocation() {
-            localStorage.setItem('locationAsked', 'true');
-            document.getElementById('locationModal').classList.remove('active');
-            const detectedLang = detectLanguageFromBrowser();
-            if (detectedLang !== currentLang) {
-                currentLang = detectedLang;
-                localStorage.setItem('language', currentLang);
-                document.getElementById('langSelect').value = currentLang;
-                document.getElementById('settingsLangSelect').value = currentLang;
-                applyTranslations();
-            }
-        }
 
-        function changeLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('language', lang);
-            document.getElementById('langSelect').value = lang;
-            document.getElementById('settingsLangSelect').value = lang;
-            applyTranslations();
-        }
 
-        function changeCurrency(currency) {
-            currentCurrency = currency;
-            localStorage.setItem('currency', currency);
-            document.getElementById('currencySelect').value = currency;
-            refreshDisplay();
-            renderAccounts();
-        }
-
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('active');
-            updateSettingsUI();
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-
-        function toggleThemeFromSettings() {
-            toggleTheme();
-            updateSettingsUI();
-        }
-
-        function updateSettingsUI() {
-            const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
-            const toggle = document.getElementById('themeToggle');
-            if (isDark) toggle.classList.add('active');
-            else toggle.classList.remove('active');
-        }
-
-        function t(key) {
-            return TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key];
-        }
-
-        function applyTranslations() {
-            document.getElementById('loginTitle').textContent = isRegisterMode ? t('createAccount') : t('signIn');
-            document.getElementById('emailInput').placeholder = t('email');
-            document.getElementById('passwordInput').placeholder = t('password');
-            document.getElementById('authBtn').textContent = isRegisterMode ? t('createAccount') : t('signIn');
-            document.getElementById('switchText').textContent = isRegisterMode ? t('noAccount') : t('noAccount');
-            document.getElementById('switchLink').textContent = isRegisterMode ? ' ' + t('signIn') : ' ' + t('createAccount');
-            document.querySelector('.skip-login button').textContent = t('continueWithout');
-            document.getElementById('authFloatBtn').textContent = '🔐 ' + t('signIn');
-            document.getElementById('addModalTitle').textContent = t('addNewAccount');
-            document.getElementById('presetSectionTitle').textContent = t('quickSelect');
-            document.getElementById('customToggle').textContent = t('customAccount');
-            document.getElementById('newAccountName').placeholder = t('accountName');
-            document.getElementById('newAccountType').options[0].text = t('selectType');
-            document.getElementById('newAccountType').options[1].text = t('imageURL');
-            document.getElementById('newAccountType').options[2].text = t('uploadDevice');
-            document.getElementById('newAccountImage').placeholder = t('imageURL');
-            document.getElementById('btnAdd').textContent = t('add');
-            document.getElementById('btnCancel').textContent = t('cancel');
-            document.getElementById('deleteTitle').textContent = t('confirmDelete');
-            document.getElementById('deleteMessage').textContent = t('deleteMsg');
-            document.getElementById('btnDelete').textContent = t('deleteBtn');
-            document.getElementById('btnCancelDelete').textContent = t('cancel');
-            document.getElementById('btnLogout').textContent = t('logout');
-            document.getElementById('appTitle').textContent = t('total');
-            document.getElementById('descCollected').textContent = t('amountCollected');
-            document.getElementById('addBtnText').textContent = t('addNewAccount');
-            
-            const savedGoal = localStorage.getItem('goalValue') || '50K ' + getCurrencySymbol();
-            document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + savedGoal + ' ]';
-            
-            // Settings translations
-            document.getElementById('settingsTitle').textContent = t('settings');
-            document.getElementById('langSectionTitle').textContent = '🌐 ' + t('language');
-            document.getElementById('langLabel').textContent = t('selectLanguage');
-            document.getElementById('themeSectionTitle').textContent = '🎨 ' + t('appearance');
-            document.getElementById('darkModeLabel').textContent = t('darkMode');
-            document.getElementById('currencySectionTitle').textContent = '💰 ' + t('currency');
-            document.getElementById('currencyLabel').textContent = t('selectCurrency');
-            document.getElementById('btnCloseSettings').textContent = t('close');
-            
-            updateSyncStatusText();
-            renderAccounts();
-        }
-
-        function updateSyncStatusText() {
-            const el = document.getElementById('syncStatus');
-            const status = el.classList.contains('offline') ? 'offline' : el.classList.contains('local-only') ? 'local' : 'online';
-            if (status === 'online') el.innerHTML = '<span class="dot"></span> ' + t('cloudSync');
-            else if (status === 'offline') el.innerHTML = '<span class="dot"></span> ' + t('offlineMode');
-            else el.innerHTML = '<span class="dot"></span> ' + t('localMode');
-        }
-
-        // Country to language mapping
-        const COUNTRY_LANG_MAP = {
-            'SA': 'ar', 'AE': 'ar', 'EG': 'ar', 'QA': 'ar', 'KW': 'ar', 'OM': 'ar', 'BH': 'ar', 'JO': 'ar', 'LB': 'ar', 'IQ': 'ar', 'YE': 'ar', 'SY': 'ar', 'DZ': 'ar', 'MA': 'ar', 'TN': 'ar', 'LY': 'ar', 'SD': 'ar', 'MR': 'ar', 'SO': 'ar', 'PS': 'ar',
-            'FR': 'fr', 'BE': 'fr', 'CH': 'fr', 'LU': 'fr', 'MC': 'fr', 'CI': 'fr', 'SN': 'fr', 'ML': 'fr', 'BF': 'fr', 'NE': 'fr', 'TG': 'fr', 'BJ': 'fr', 'GA': 'fr', 'CM': 'fr', 'CF': 'fr', 'TD': 'fr', 'CG': 'fr', 'CD': 'fr', 'GN': 'fr', 'BI': 'fr', 'DJ': 'fr', 'RW': 'fr', 'MG': 'fr', 'KM': 'fr', 'MU': 'fr', 'SC': 'fr',
-            'ES': 'es', 'MX': 'es', 'CO': 'es', 'AR': 'es', 'PE': 'es', 'VE': 'es', 'CL': 'es', 'EC': 'es', 'GT': 'es', 'CU': 'es', 'BO': 'es', 'DO': 'es', 'HN': 'es', 'PY': 'es', 'SV': 'es', 'NI': 'es', 'CR': 'es', 'PA': 'es', 'UY': 'es', 'GQ': 'es', 'PR': 'es',
-            'IT': 'it', 'SM': 'it', 'VA': 'it', 'CH': 'it',
-            'DE': 'de', 'AT': 'de', 'CH': 'de', 'LI': 'de', 'LU': 'de',
-            'PT': 'pt', 'BR': 'pt', 'AO': 'pt', 'MZ': 'pt', 'GW': 'pt', 'CV': 'pt', 'ST': 'pt', 'TL': 'pt',
-            'TR': 'tr', 'CY': 'tr',
-            'NL': 'nl', 'BE': 'nl', 'SR': 'nl', 'AW': 'nl', 'CW': 'nl', 'SX': 'nl',
-            'PL': 'pl'
-        };
-
-        // ═══════════════════════════════════════════════
-        // FIREBASE CONFIG
-        // ═══════════════════════════════════════════════
-        const firebaseConfig = {
-            apiKey: "AIzaSyCMaYPkNp49zVrNeYrVwtV02cPQCnU8tU8",
-            authDomain: "my-money-daa70.firebaseapp.com",
-            databaseURL: "https://my-money-daa70-default-rtdb.firebaseio.com",
-            projectId: "my-money-daa70",
-            storageBucket: "my-money-daa70.firebasestorage.app",
-            messagingSenderId: "491139682486",
-            appId: "1:491139682486:web:2cf03c83d4e83fadc41617"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
-
-        let currentUser = null, isRegisterMode = false, isLocalMode = false;
-        let accounts = [], deleteTargetId = null, selectedFile = null;
-        let customMode = false;
-
-        const PRESETS = [
-            { name: 'Binance', image: 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png' },
-            { name: 'Coinbase', image: 'https://cryptologos.cc/logos/coinbase-coin-logo.png' },
-            { name: 'Stripe', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png' },
-            { name: 'Skrill', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Skrill_logo.svg/2560px-Skrill_logo.svg.png' },
-            { name: 'Neteller', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Neteller_logo.svg/2560px-Neteller_logo.svg.png' },
-            { name: 'Payeer', image: 'https://payeer.com/images/logo.png' },
-            { name: 'Advcash', image: 'https://advcash.com/static/images/logo.svg' },
-            { name: 'Venmo', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Venmo_Logo.svg/2560px-Venmo_Logo.svg.png' },
-            { name: 'Zelle', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Zelle_logo.svg/2560px-Zelle_logo.svg.png' }
-        ];
-
-        const DEFAULT_ACCOUNTS = [
-            {id: 1, name: 'PayPal', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png', amount: 0},
-            {id: 2, name: 'Payoneer', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Payoneer_logo.svg/2560px-Payoneer_logo.svg.png', amount: 0},
-            {id: 3, name: 'Wise', image: 'https://wise.com/public-resources/assets/logos/wise-personal/logo.svg', amount: 0},
-            {id: 4, name: 'Chime', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Chime_logo.svg/2560px-Chime_logo.svg.png', amount: 0},
-            {id: 5, name: 'Nubank', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Nubank_logo.svg/2560px-Nubank_logo.svg.png', amount: 0},
-            {id: 6, name: 'Monzo', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Monzo_logo.svg/2560px-Monzo_logo.svg.png', amount: 0},
-            {id: 7, name: 'Cash App', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Square_Cash_app_logo.svg/1200px-Square_Cash_app_logo.svg.png', amount: 0}
-        ];
-
-        function initTheme() {
-            const saved = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', saved);
-            updateThemeIcon(saved);
-        }
-        function toggleTheme() {
-            const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-            const nxt = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', nxt);
-            localStorage.setItem('theme', nxt);
-            updateThemeIcon(nxt);
-        }
-        function updateThemeIcon(t) { document.getElementById('themeIcon').textContent = t === 'dark' ? '☀️' : '🌙'; }
-
-        function showLogin() { document.getElementById('loginOverlay').classList.add('active'); }
-        function hideLogin() { document.getElementById('loginOverlay').classList.remove('active'); }
-
-        function toggleMode() {
-            isRegisterMode = !isRegisterMode;
-            applyTranslations();
-        }
-        function showError(msg) { document.getElementById('errorMsg').textContent = msg; }
-
-        function handleAuth() {
-            const email = document.getElementById('emailInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-            if (!email || !password) { showError(t('fillFields')); return; }
-            if (password.length < 6) { showError(t('passwordLength')); return; }
-            const btn = document.getElementById('authBtn');
-            btn.textContent = '...'; btn.disabled = true;
-            if (isRegisterMode) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(() => btn.disabled = false)
-                    .catch(err => { showError(mapError(err.code)); btn.textContent = t('createAccount'); btn.disabled = false; });
-            } else {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(() => btn.disabled = false)
-                    .catch(err => { showError(mapError(err.code)); btn.textContent = t('signIn'); btn.disabled = false; });
-            }
-        }
-
-        function skipLogin() {
-            isLocalMode = true;
-            localStorage.setItem('skippedLogin', 'true');
-            hideLogin();
-            document.getElementById('authFloatBtn').classList.add('visible');
-            document.getElementById('userBar').classList.remove('active');
-            showSyncStatus('local');
-            loadLocalData();
-        }
-
-        function mapError(code) {
-            const errors = {
-                'auth/invalid-email': t('invalidEmail'),
-                'auth/user-disabled': t('userDisabled'),
-                'auth/user-not-found': t('userNotFound'),
-                'auth/wrong-password': t('wrongPassword'),
-                'auth/email-already-in-use': t('emailInUse'),
-                'auth/weak-password': t('weakPassword'),
-                'auth/network-request-failed': t('networkError'),
-                'auth/invalid-api-key': t('apiKeyError'),
-                'auth/operation-not-allowed': t('operationNotAllowed')
-            };
-            return errors[code] || 'Error: ' + code;
-        }
-
-        function logout() {
-            if (!confirm(t('logoutConfirm'))) return;
-            if (isLocalMode) {
-                isLocalMode = false;
-                localStorage.removeItem('skippedLogin');
-                document.getElementById('userBar').classList.remove('active');
-                document.getElementById('authFloatBtn').classList.remove('visible');
-                showLogin();
-            } else {
-                auth.signOut();
-            }
-        }
-
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user; isLocalMode = false;
-                localStorage.removeItem('skippedLogin');
-                hideLogin();
-                document.getElementById('authFloatBtn').classList.remove('visible');
-                document.getElementById('userBar').classList.add('active');
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
-                loadFromCloud();
-            } else {
-                currentUser = null;
-                document.getElementById('userBar').classList.remove('active');
-                document.getElementById('emailInput').value = '';
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('errorMsg').textContent = '';
-                document.getElementById('authBtn').textContent = t('signIn');
-                document.getElementById('authBtn').disabled = false;
-            }
         });
 
-        function editGoal() {
-            const goalText = document.getElementById('goalText');
-            const currentText = goalText.textContent;
-            const match = currentText.match(/\\[\\s*(.+?)\\s*\\]/);
-            const currentGoal = match ? match[1] : '50K ' + getCurrencySymbol();
-            const input = document.createElement('input');
-            input.type = 'text'; input.value = currentGoal; input.className = 'goal-input';
-            goalText.innerHTML = t('desiredGoal') + ' [ '; goalText.appendChild(input);
-            const closeBracket = document.createTextNode(' ]'); goalText.appendChild(closeBracket);
-            input.focus(); input.select();
-            const save = () => {
-                const val = input.value.trim() || '50K ' + getCurrencySymbol();
-                goalText.innerHTML = t('desiredGoal') + ' [ ' + val + ' ]';
-                saveToStorage('goalValue', val);
-            };
-            input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
-        }
 
-        function openAddModal() {
-            document.getElementById('addModal').classList.add('active');
-            customMode = false;
-            document.getElementById('customForm').style.display = 'none';
-            document.querySelector('.custom-toggle').style.display = 'inline-block';
-            renderPresets();
-            resetCustomForm();
-        }
-        function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
 
-        function renderPresets() {
-            const grid = document.getElementById('presetGrid');
-            grid.innerHTML = '';
-            PRESETS.forEach(preset => {
-                const div = document.createElement('div');
-                div.className = 'preset-item';
-                const isAdded = accounts.some(a => a.name === preset.name);
-                if (isAdded) div.classList.add('added');
-                div.innerHTML = `<img src="${preset.image}" alt="${preset.name}" onerror="this.src='https://via.placeholder.com/40?text=${preset.name.charAt(0)}'"><span>${preset.name}</span>`;
-                if (!isAdded) div.onclick = () => addPresetAccount(preset);
-                grid.appendChild(div);
-            });
-        }
-
-        function addPresetAccount(preset) {
-            const newAccount = { id: Date.now(), name: preset.name, image: preset.image, amount: 0 };
-            accounts.push(newAccount);
-            renderAccounts(); saveAccounts(); closeAddModal();
-        }
-
-        function showCustomForm() {
-            customMode = true;
-            document.getElementById('customForm').style.display = 'block';
-            document.querySelector('.custom-toggle').style.display = 'none';
-        }
-        function resetCustomForm() {
-            document.getElementById('newAccountName').value = '';
-            document.getElementById('newAccountType').value = '';
-            document.getElementById('newAccountImage').value = '';
-            document.getElementById('newAccountImage').style.display = 'none';
-            document.getElementById('newAccountFile').style.display = 'none';
-            document.getElementById('imagePreview').classList.remove('active');
-            document.getElementById('imageError').classList.remove('active');
-            selectedFile = null;
-        }
-        function handleTypeChange() {
-            const type = document.getElementById('newAccountType').value;
-            document.getElementById('newAccountImage').style.display = type === 'url' ? 'block' : 'none';
-            document.getElementById('newAccountFile').style.display = type === 'upload' ? 'block' : 'none';
-        }
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) { showModalError(t('selectImage')); return; }
-            selectedFile = file;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreview').classList.add('active');
-            };
-            reader.readAsDataURL(file);
-        }
-        function addNewAccount() {
-            if (!customMode) { showModalError(t('customAccount')); return; }
-            const name = document.getElementById('newAccountName').value.trim();
-            const type = document.getElementById('newAccountType').value;
-            const imgUrl = document.getElementById('newAccountImage').value.trim();
-            if (!name) { showModalError(t('enterName')); return; }
-            if (!type) { showModalError(t('selectImageType')); return; }
-            let image = '';
-            if (type === 'url') {
-                if (!imgUrl) { showModalError(t('enterURL')); return; }
-                const blocked = ['porn', 'xxx', 'sex', 'nude', 'adult', 'redtube', 'xvideos', 'xhamster', 'xnxx', 'youporn'];
-                if (blocked.some(d => imgUrl.toLowerCase().includes(d))) { showModalError(t('adultContent')); return; }
-                image = imgUrl;
-            } else if (type === 'upload') {
-                if (!selectedFile) { showModalError(t('selectImage')); return; }
-                image = document.getElementById('imagePreview').src;
-            }
-            const newAccount = { id: Date.now(), name: name, image: image, amount: 0 };
-            accounts.push(newAccount);
-            renderAccounts(); saveAccounts(); closeAddModal();
-        }
-        function showModalError(msg) {
-            const err = document.getElementById('imageError');
-            err.textContent = msg; err.classList.add('active');
-            setTimeout(() => err.classList.remove('active'), 3000);
-        }
-
-        function askDelete(id) {
-            const acc = accounts.find(a => a.id === id);
-            if (!acc) return;
-            deleteTargetId = id;
-            document.getElementById('deleteMessage').textContent = t('deleteMsg');
-            document.getElementById('deleteConfirm').classList.add('active');
-        }
-        function confirmDelete() {
-            if (deleteTargetId) {
-                accounts = accounts.filter(a => a.id !== deleteTargetId);
-                renderAccounts(); saveAccounts(); updateTotal();
-            }
-            cancelDelete();
-        }
-        function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirm').classList.remove('active'); }
-
-        // Long press handling
-        let longPressTimer;
-        let isLongPress = false;
-        const LONG_PRESS_DURATION = 600; // ms
-
-        function setupLongPress(element, id) {
-            const startLongPress = (e) => {
-                if (e.target.closest('.amount-edit')) return;
-                isLongPress = false;
-                longPressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    // Visual feedback
-                    element.style.transform = 'scale(0.98)';
-                    element.style.opacity = '0.8';
-                    setTimeout(() => {
-                        element.style.transform = '';
-                        element.style.opacity = '';
-                        askDelete(id);
-                    }, 150);
-                }, LONG_PRESS_DURATION);
-            };
-
-            const cancelLongPress = () => {
-                clearTimeout(longPressTimer);
-            };
-
-            element.addEventListener('mousedown', startLongPress);
-            element.addEventListener('touchstart', startLongPress, {passive: true});
-            element.addEventListener('mouseup', cancelLongPress);
-            element.addEventListener('mouseleave', cancelLongPress);
-            element.addEventListener('touchend', cancelLongPress);
-            element.addEventListener('touchmove', cancelLongPress);
-        }
-
-        function renderAccounts() {
-            const list = document.getElementById('accountsList');
-            list.innerHTML = '';
-            accounts.forEach((acc) => {
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.setAttribute('data-id', acc.id);
-                
-                // Setup long press for delete
-                setupLongPress(item, acc.id);
-                
-                // Click handler - just shows it's active/open
-                item.addEventListener('click', (e) => {
-                    if (e.target.closest('.amount-edit')) return;
-                    if (isLongPress) {
-                        isLongPress = false;
-                        return;
-                    }
-                    // Single click - could open account details or just show status
-                    const statusEl = item.querySelector('.status');
-                    if (statusEl) {
-                        statusEl.style.color = 'var(--warning)';
-                        statusEl.textContent = '● ' + t('open');
-                        setTimeout(() => {
-                            statusEl.style.color = 'var(--success)';
-                            statusEl.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:var(--success);border-radius:50%;margin-right:5px;"></span>` + t('open');
-                        }, 1000);
-                    }
-                });
-                
-                const formatted = formatAmount(acc.amount);
-                item.innerHTML = `
-                    <img class="logo" src="${acc.image}" alt="${acc.name}" onerror="this.src='https://via.placeholder.com/60/3B3B3B/FFFFFF?text=${acc.name.charAt(0)}'">
-                    <div class="details"><div class="name">${acc.name}</div><div class="status"><span style="display:inline-block;width:8px;height:8px;background:var(--success);border-radius:50%;margin-right:5px;"></span>${t('open')}</div></div>
-                    <div class="amount-container"><div class="amount" id="amount-${acc.id}">${formatted}<img src="https://files.catbox.moe/ddgcxc.png" class="amount-edit" onclick="editAmount(${acc.id})"></div></div>
-                    <div class="long-press-indicator">${t('longPressToDelete')}</div>`;
-                list.appendChild(item);
-            });
-        }
-
-        function saveToStorage(key, value) {
-            localStorage.setItem(key, value);
-            localStorage.setItem('lastLocalUpdate', Date.now().toString());
-            if (!isLocalMode && currentUser) saveToCloud();
-        }
-        function saveAccounts() {
-            localStorage.setItem('accounts', JSON.stringify(accounts));
-            localStorage.setItem('lastLocalUpdate', Date.now().toString());
-            if (!isLocalMode && currentUser) saveToCloud();
-        }
-
-        function loadLocalData() {
-            const saved = localStorage.getItem('accounts');
-            if (saved) accounts = JSON.parse(saved);
-            else accounts = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
-            renderAccounts(); refreshDisplay();
-            const savedGoal = localStorage.getItem('goalValue');
-            if (savedGoal) document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + savedGoal + ' ]';
-        }
-
-        function saveToCloud() {
-            if (!currentUser) return;
-            const data = {
-                totalAmount: localStorage.getItem('totalAmount') || '0',
-                accounts: accounts,
-                goalValue: localStorage.getItem('goalValue') || '50K ' + getCurrencySymbol(),
-                currency: currentCurrency,
-                updatedAt: Date.now()
-            };
-            db.ref('users/' + currentUser.uid + '/earnings').set(data)
-                .then(() => showSyncStatus('online'))
-                .catch(() => showSyncStatus('offline'));
-        }
-        function loadFromCloud() {
-            if (!currentUser) return;
-            db.ref('users/' + currentUser.uid + '/earnings').once('value')
-                .then(snapshot => {
-                    const data = snapshot.val();
-                    if (data) {
-                        const cloudTime = data.updatedAt || 0;
-                        const localTime = parseInt(localStorage.getItem('lastLocalUpdate') || '0');
-                        if (cloudTime >= localTime) {
-                            if (data.accounts) accounts = data.accounts;
-                            if (data.totalAmount) localStorage.setItem('totalAmount', data.totalAmount);
-                            if (data.goalValue) localStorage.setItem('goalValue', data.goalValue);
-                            if (data.currency) {
-                                currentCurrency = data.currency;
-                                localStorage.setItem('currency', data.currency);
-                            }
-                            localStorage.setItem('accounts', JSON.stringify(accounts));
-                            localStorage.setItem('lastLocalUpdate', Date.now().toString());
-                        } else { saveToCloud(); }
-                        renderAccounts(); refreshDisplay();
-                        if (data.goalValue) document.getElementById('goalText').textContent = t('desiredGoal') + ' [ ' + data.goalValue + ' ]';
-                    } else { loadLocalData(); saveToCloud(); }
-                    showSyncStatus('online');
-                })
-                .catch(() => { loadLocalData(); showSyncStatus('offline'); });
-        }
-        function showSyncStatus(status) {
-            const el = document.getElementById('syncStatus');
-            el.className = 'sync-status' + (status === 'offline' ? ' offline' : status === 'local' ? ' local-only' : '');
-            updateSyncStatusText();
-        }
-
-        function refreshDisplay() {
-            const savedTotal = localStorage.getItem('totalAmount');
-            if (savedTotal) {
-                const val = parseFloat(savedTotal) || 0;
-                document.getElementById('total-amount').innerHTML = formatAmount(val) +
-                    '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
-            }
-            renderAccounts();
-        }
-
-        function editTotal() {
-            const totalEl = document.getElementById('total-amount');
-            const current = totalEl.textContent.trim();
-            const symbol = getCurrencySymbol();
-            const input = document.createElement('input');
-            input.type = 'text'; input.value = current.replace(symbol, '').replace(/,/g, ''); input.className = 'edit-input';
-            totalEl.innerHTML = symbol; totalEl.appendChild(input); input.focus(); input.select();
-            const save = () => {
-                let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
-                const formatted = formatAmount(val);
-                totalEl.innerHTML = formatted + '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
-                saveToStorage('totalAmount', val.toString());
-            };
-            input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
-        }
-
-        function editAmount(id) {
-            const amountEl = document.getElementById('amount-' + id);
-            const current = amountEl.textContent.trim();
-            const symbol = getCurrencySymbol();
-            const input = document.createElement('input');
-            input.type = 'text'; input.value = current.replace(symbol, '').replace(/,/g, ''); input.className = 'edit-input';
-            amountEl.innerHTML = symbol; amountEl.appendChild(input); input.focus(); input.select();
-            const save = () => {
-                let val = parseFloat(input.value.replace(/[^0-9.]/g, '')) || 0;
-                const formatted = formatAmount(val);
-                amountEl.innerHTML = formatted + '<img src="https://files.catbox.moe/ddgcxc.png" class="amount-edit" onclick="editAmount(' + id + ')">';
-                const acc = accounts.find(a => a.id === id);
-                if (acc) { acc.amount = val; saveAccounts(); }
-                updateTotal();
-            };
-            input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
-        }
-
-        function updateTotal() {
-            let sum = 0;
-            accounts.forEach(acc => sum += acc.amount || 0);
-            const totalEl = document.getElementById('total-amount');
-            const formatted = formatAmount(sum);
-            totalEl.innerHTML = formatted + '<i class="fa-solid fa-pen edit-icon" onclick="editTotal()"></i>';
-            saveToStorage('totalAmount', sum.toString());
-        }
-
-        window.onload = function() {
-            initTheme();
-            
-            // Currency setup
-            document.getElementById('currencySelect').value = currentCurrency;
-            
-            // Language detection and setup
-            const savedLang = localStorage.getItem('language');
-            if (!savedLang) {
-                const browserLang = detectLanguageFromBrowser();
-                currentLang = browserLang;
-                localStorage.setItem('language', currentLang);
-                document.getElementById('langSelect').value = currentLang;
-                document.getElementById('settingsLangSelect').value = currentLang;
-                
-                if (!locationPermissionAsked) {
-                    setTimeout(() => askForLocation(), 1000);
-                }
-            } else {
-                currentLang = savedLang;
-                document.getElementById('langSelect').value = currentLang;
-                document.getElementById('settingsLangSelect').value = currentLang;
-            }
-            
-            applyTranslations();
-            updateSettingsUI();
-            
-            const skipped = localStorage.getItem('skippedLogin');
-            if (skipped === 'true') {
-                isLocalMode = true;
-                document.getElementById('authFloatBtn').classList.add('visible');
-                document.getElementById('userBar').classList.remove('active');
-                showSyncStatus('local');
-                loadLocalData();
-            } else {
-                showLogin();
-            }
-        };
     </script>
+
+
+
+
+
+
+
 </body>
+
+
+
 </html>
+
+
+
+
+
+
+
+
+
+
+
+   </ul>
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+
+
+    
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <script>
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+
+
+    const sidebar = document.getElementById('sidebar');
+
+
+
+    const menuToggle = document.getElementById('menu-toggle');
+
+
+
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+
+
+    const headerWrapper = document.getElementById('header-wrapper'); // <--- أضفنا هذا السطر
+
+
+
+    let lastScrollTop = 0; // <--- أضفنا هذا السطر لمتغير تتبع التمرير
+
+
+
+
+
+
+
+    // التحقق من وجود العناصر الأساسية
+
+
+
+    if (!sidebar || !menuToggle || !sidebarOverlay || !headerWrapper) { // <--- أضفنا headerWrapper هنا
+
+
+
+        console.error('One or more essential elements (sidebar, menuToggle, sidebarOverlay, headerWrapper) not found in DOM');
+
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+
+
+    // --- وظيفة الشريط الجانبي (Sidebar) ---
+
+
+
+    // فتح/إغلاق القائمة عند النقر على زر القائمة
+
+
+
+    menuToggle.addEventListener('click', (event) => {
+
+
+
+        event.stopPropagation();
+
+
+
+        sidebar.classList.toggle('active');
+
+
+
+        sidebarOverlay.classList.toggle('active');
+
+
+
+    });
+
+
+
+
+
+
+
+    // إغلاق القائمة عند النقر على الـ overlay
+
+
+
+    sidebarOverlay.addEventListener('click', (event) => {
+
+
+
+        event.stopPropagation();
+
+
+
+        closeSidebar();
+
+
+
+    });
+
+
+
+
+
+
+
+    // إغلاق القائمة عند اللمس على الـ overlay
+
+
+
+    sidebarOverlay.addEventListener('touchend', (event) => {
+
+
+
+        event.preventDefault();
+
+
+
+        event.stopPropagation();
+
+
+
+        closeSidebar();
+
+
+
+    });
+
+
+
+
+
+
+
+    // منع إغلاق القائمة عند النقر أو التمرير داخلها
+
+
+
+    sidebar.addEventListener('click', (event) => {
+
+
+
+        event.stopPropagation();
+
+
+
+    });
+
+
+
+
+
+
+
+    sidebar.addEventListener('touchmove', (event) => {
+
+
+
+        event.stopPropagation(); // السماح بالتمرير داخل القائمة دون إغلاق
+
+
+
+    });
+
+
+
+
+
+
+
+    // دالة إغلاق القائمة
+
+
+
+    function closeSidebar() {
+
+
+
+        sidebar.classList.remove('active');
+
+
+
+        sidebarOverlay.classList.remove('active');
+
+
+
+    }
+
+
+
+
+
+
+
+    // --- وظيفة الشريط العلوي (Header) - الإخفاء والإظهار عند التمرير ---
+
+
+
+    window.addEventListener('scroll', () => {
+
+
+
+        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+
+
+
+
+
+
+        // إخفاء الشريط العلوي عند التمرير لأسفل (بعد 50 بكسل)
+
+
+
+        if (currentScroll > lastScrollTop && currentScroll > 50) {
+
+
+
+            headerWrapper.classList.add('hidden');
+
+
+
+        }
+
+
+
+        // إظهار الشريط العلوي عند التمرير لأعلى
+
+
+
+        else {
+
+
+
+            headerWrapper.classList.remove('hidden');
+
+
+
+        }
+
+
+
+
+
+
+
+        // تحديث قيمة lastScrollTop للمقارنة التالية
+
+
+
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+
+
+
+    });
+
+
+
+
+
+
+
+    // --- وظيفة تبديل الثيمات (Theme Toggle) ---
+
+
+
+    // هذه الوظائف يمكن أن تبقى خارج DOMContentLoaded أو داخلها، كلاهما يعمل
+
+
+
+    // ولكن لإبقاء كل ما يتعلق بالصفحة في مكان واحد، أفضل وضعها بالداخل.
+
+
+
+    const themes = ['light', 'dark', 'blue'];
+
+
+
+    let currentThemeIndex = 0;
+
+
+
+
+
+
+
+    function setTheme(theme) {
+
+
+
+        document.documentElement.setAttribute('data-theme', theme);
+
+
+
+        localStorage.setItem('theme', theme);
+
+
+
+        currentThemeIndex = themes.indexOf(theme);
+
+
+
+    }
+
+
+
+
+
+
+
+    function toggleTheme() {
+
+
+
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+
+
+
+        setTheme(themes[currentThemeIndex]);
+
+
+
+    }
+
+
+
+
+
+
+
+    // تحميل الثيم المحفوظ أو الافتراضي إلى light
+
+
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+
+
+
+    setTheme(savedTheme);
+
+
+
+
+
+
+
+    // إذا كان لديك زر لتبديل الثيم، تأكد من إضافة مستمع حدث له، مثلاً:
+
+
+
+    // const themeToggleButton = document.getElementById('theme-toggle-button');
+
+
+
+    // if (themeToggleButton) {
+
+
+
+    //     themeToggleButton.addEventListener('click', toggleTheme);
+
+
+
+    // }
+
+
+
+});
+
+
+
+
+
+
+
+// إذا كان لديك أي دوال أخرى مثل switchTab أو closeOverlay
+
+
+
+// التي يتم استدعاؤها مباشرة من HTML (مثل onclick)، يمكن أن تبقى خارج DOMContentLoaded
+
+
+
+// أو يجب أن تكون معرفة كـ window.switchTab = function() {...} لتكون متاحة عالميًا.
+
+
+
+// ولكن الطريقة الأفضل هي ربطها بأزرار باستخدام addEventListener داخل DOMContentLoaded.
+
+
+
+
+
+
+
+// Theme toggle functionality
+
+
+
+const themes = ['light', 'dark', 'blue']; //1
+
+
+
+let currentThemeIndex = 0;
+
+
+
+
+
+
+
+function setTheme(theme) {
+
+
+
+    document.documentElement.setAttribute('data-theme', theme); //2
+
+
+
+    localStorage.setItem('theme', theme); //3
+
+
+
+    currentThemeIndex = themes.indexOf(theme);
+
+
+
+}
+
+
+
+
+
+
+
+function toggleTheme() {
+
+
+
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+
+
+
+    setTheme(themes[currentThemeIndex]); //4
+
+
+
+}
+
+
+
+
+
+
+
+// Load saved theme or default to light
+
+
+
+const savedTheme = localStorage.getItem('theme') || 'light'; //5
+
+
+
+setTheme(savedTheme); //6
+
+
+
+
+
+
+
+    </script>
+
+
+
+</body>
+
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+ 
+
+
+
+
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+<body dir="en">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+
+
+
+.image-container img {
+
+
+
+    transition: transform 0.2s ease-in-out;
+
+
+
+}
+
+
+
+
+
+
+
+.image-container img:active {
+
+
+
+    transform: scale(1.1);
+
+
+
+}
+
+
+
+</style>
+
+
+
+
+
+
+
+<div class="lang-buttons">
+
+
+
+    
+
+
+
+</div>
+
+
+
+
+
+
+
+<style>
+
+
+
+*{-webkit-tap-highlight-color:transparent;user-select:none;margin:0;padding:0;box-sizing:border-box;outline:none;user-select:none;}
+
+
+
+</style>
+
+
+
+</head>
+
+
+
+<!DOCTYPE html>
+
+
+
+<html lang="ar">
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>منع نسخ الصور</title>
+
+
+
+    
+
+
+
+    <script>
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+
+
+    const longClickElement = document.getElementById('myLongClickPrevent');
+
+
+
+    let pressTimer;
+
+
+
+
+
+
+
+    if (longClickElement) {
+
+
+
+        longClickElement.addEventListener('mousedown', function(e) {
+
+
+
+            // منع تحديد النص مباشرة عند بداية النقر إذا أردت
+
+
+
+            e.preventDefault();
+
+
+
+
+
+
+
+            pressTimer = setTimeout(function() {
+
+
+
+                // هذا الكود سيتم تشغيله بعد "نقر مطول" (مثلاً 500ms)
+
+
+
+                alert('تم اكتشاف نقرة طويلة! تم منع أي سلوك افتراضي.');
+
+
+
+                // هنا يمكنك منع المزيد من الإجراءات مثل عرض قائمة السياق
+
+
+
+                // إذا أردت منع قائمة السياق:
+
+
+
+                // longClickElement.addEventListener('contextmenu', function(ce) {
+
+
+
+                //     ce.preventDefault();
+
+
+
+                // });
+
+
+
+
+
+
+
+            }, 500); // 500 ميلي ثانية للنقر المطول
+
+
+
+        });
+
+
+
+
+
+
+
+        longClickElement.addEventListener('mouseup', function(e) {
+
+
+
+            clearTimeout(pressTimer); // مسح المؤقت إذا تم تحرير الزر قبل النقر المطول
+
+
+
+        });
+
+
+
+
+
+
+
+        longClickElement.addEventListener('mouseleave', function(e) {
+
+
+
+            clearTimeout(pressTimer); // مسح المؤقت إذا غادر المؤشر العنصر
+
+
+
+        });
+
+
+
+
+
+
+
+        // لمنع قائمة السياق (context menu) التي قد تظهر عند النقر المطول بالزر الأيمن
+
+
+
+        longClickElement.addEventListener('contextmenu', function(e) {
+
+
+
+            e.preventDefault();
+
+
+
+            alert('قائمة السياق معطلة لهذا العنصر.');
+
+
+
+        });
+
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+
+
+    // لمنع النسخ من عنصر معين (مثلاً فقرة بمعرف "noCopyParagraph")
+
+
+
+    const noCopyParagraph = document.getElementById('noCopyParagraph');
+
+
+
+    if (noCopyParagraph) {
+
+
+
+        noCopyParagraph.addEventListener('copy', function(event) {
+
+
+
+            event.preventDefault(); // يمنع النسخ
+
+
+
+            console.log('تم منع النسخ من هذا العنصر.');
+
+
+
+            // يمكنك إظهار رسالة للمستخدم هنا إذا أردت
+
+
+
+            // alert('النسخ غير مسموح به!');
+
+
+
+        });
+
+
+
+    }
+
+
+
+
+
+
+
+    // لمنع النسخ من كامل المستند (أكثر شمولاً)
+
+
+
+    document.addEventListener('copy', function(event) {
+
+
+
+        event.preventDefault(); // يمنع النسخ من أي مكان في الصفحة
+
+
+
+        console.log('تم منع النسخ من الصفحة بأكملها.');
+
+
+
+        // alert('لا يُسمح بالنسخ في هذه الصفحة!');
+
+
+
+    });
+
+
+
+});
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+
+
+    const elementToProtect = document.getElementById('myProtectedElement');
+
+
+
+    if (elementToProtect) {
+
+
+
+        elementToProtect.addEventListener('contextmenu', function(event) {
+
+
+
+            event.preventDefault(); // يمنع ظهور قائمة السياق
+
+
+
+            console.log('تم منع قائمة السياق.');
+
+
+
+        });
+
+
+
+    }
+
+
+
+
+
+
+
+    // لمنع قائمة السياق من كامل المستند
+
+
+
+    document.addEventListener('contextmenu', function(event) {
+
+
+
+        event.preventDefault();
+
+
+
+        console.log('تم منع قائمة السياق من كامل المستند.');
+
+
+
+    });
+
+
+
+});
+
+
+
+
+
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+    </script>
+
+
+
+<script>
+
+
+
+// دمج كلا الكائنين مع إضافة اللغة الصينية
+
+
+
+const translations = {
+
+
+
+
+
+
+
+   
+
+
+
+ },
+
+
+
+    en: {
+
+
+
+        // القوائم السابقة
+
+
+
+        text1: "Supplications", text2: "Request a service", text3: "Hadiths", text4: "Donate", text5: "Calendar", text6: "Test your faith", text7: "Bible Radios",
+
+
+
+        text8: "Read the book", text9: "Live broadcast ", text10: "Nearest church", text11: "Prophets Stories", text12: "Ramadan Date", text13: "Donate",
+
+
+
+        text14: "Request a service", 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   text15: "Read the book", text16: "Nearest church", text17: "Live broadcast", text18: "Bible broadcasts", menu27: "Test your faith",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // القنوات + القائمة الجانبية
+
+
+
+        
+
+
+
+        text19: "Home", text20: "Read Bible", text21: "Request a service", text22: "Donate", text23: "Account",
+
+
+
+      
+
+
+
+  menu1: "Home Page", menu2: "Read the book", menu3: "Holy Quran", menu4: "Nearest church", menu5: "Live broadcast ",
+
+
+
+        menu7: "Test your faith", menu8: "Donate", menu9: "Supplications", menu10: "Hadiths",
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   menu11: " Glass birthday cakes ❄️ ", menu12: "Hot drinks 🍵", menu13: "Christmas cookies 🍪", menu14: "Hot food recipes 🍲", menu15: " Supplications today 𖹭", menu6: "Evening drinks 🍸",
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+menu16: "Donate 🍩", menu17: "Request a service", menu18: "Live Stream", menu19: "Spaces", menu20: "Zynor AI",
+
+
+
+        menu21: "Settings", menu22: "My Account", menu23: "Support", menu24: "..Installed by Alquran App 📌", 
+
+
+
+        menu25: "........To donate and help", menu26: "Request a service",  menu28: "Show more 📖",
+
+
+
+        menu29: "🔴 Live broadcast of Islamic channels", menu30: "🔴 Show more Live" ,menu31: "Home Page" ,menu32: "Request a service"  ,menu33: "..Spotlight ✪",
+
+
+
+        menu34: "Home Page🔹 ", menu35: "All services",  menu36: "Request a service",  menu37: "Nearest church",  menu38: "Live broadcast ",  menu39: "Bible Radios",   menu40: "Test your faith",  menu41: "Support us",  menu42: "Supplications",   menu43: "Hadiths",   menu44: "Prophets Stories",   menu45: "Calendar",   menu46: "Events",  menu47: "Wallpapers",  menu48: "Islamic News",  menu49: "Donate 🍩",    menu50: "Request a service",  menu51: "Live Stream",  menu52: "Spaces",  menu53: "Zynor.Al",   menu54: "Report a problem",   menu55: "Contact Us",   menu56: "Privacy Policy",  menu57: ".Settings and Support",
+
+
+
+   menu58: "Site Terms",
+
+
+
+menu59: " 🔴 Show more Live",
+
+
+
+menu60: "📖 Read the book",
+
+
+
+menu61: "📝 Test your faith",
+
+
+
+ },
+
+
+
+    zh: {
+
+
+
+        // القوائم السابقة
+
+
+
+        text1: "杜阿", text2: "Request a service", text3: "圣训", text4: "男 阿尔·穆斯林", text5: "日历", text6: "测试你的信仰", text7: "圣经广播",
+
+
+
+        text8: "读", text9: "直播", text10: "最近的教堂", text11: "先知故事", text12: "斋月日期", text13: "捐款",
+
+
+
+        text14: "Request a service", 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   text15: "阅读 ", text16: "最近的教堂", text17: "直播", text18: "预订广播电台", menu27: "测试你的信仰",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // القنوات + القائمة الجانبية
+
+
+
+        
+
+
+
+        text19: "家", text20: "读", text21: "Request a service", text22: "捐", text23: "帐户",
+
+
+
+      
+
+
+
+  menu1: "主页", menu2: "古兰经音频", menu3: "古兰经", menu4: "礼拜时间", menu5: "朝觐方向",
+
+
+
+         menu7: "测试你的信仰", menu8: "记念词", menu9: "祈祷文", menu10: "圣训",
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+menu11: " 玻璃生日蛋糕❄️", menu12: "热饮🍵", menu13: "圣诞饼干🍪", menu14: "热食食谱🍲",  menu15: "杜阿 今天 𖹭",  menu6: "晚间饮品🍸",
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  menu16: "捐款 🍩", menu17: "Request a service", menu18: "直播", menu19: "空间", menu20: "Zynor AI",
+
+
+
+        menu21: "设置", menu22: "我的账户", menu23: "支持", menu24: "..由古兰经应用安装 📌", 
+
+
+
+        menu25: "捐款与帮助", menu26: "古兰经片段",  menu28: "显示更多 📖",
+
+
+
+        menu29: "最著名的伊斯兰频道的现场直播 🔴", menu30: "显示更多直播 🔴" ,menu31: "主页" ,menu32: "Request a service",menu33: "..聚光 上 ✪",
+
+
+
+       menu34: "主页🔹 ", menu35: "读",  menu36: "Request a service",  menu37: "最近的教堂",  menu38: "直播",  menu39: "圣经广播",   menu40: "测试你的信仰",  menu41: "捐",  menu42: "杜阿",   menu43: "圣训",   menu44: "先知故事",   menu45: "日历",   menu46: "斋月日期",  menu47: "伊斯兰壁纸",  menu48: "伊斯兰教新闻",  menu49: "捐款 🍩",    menu50: "Request a service",  menu51: "直播",  menu52: "古兰经电台",  menu53: "Zynor.Al",   menu54: "设置",   menu55: "我的账户",   menu56: "支持",  menu57: ".设置和支持",
+
+
+
+        menu58: "🎄 圣诞食谱",
+
+
+
+      menu59: "🔴 显示更多直播",
+
+
+
+      menu60: "📖 阅读本书",
+
+
+
+      menu61: "📝 测试你的信仰",
+
+
+
+  },
+
+
+
+        id: {
+
+
+
+  // Menu utama
+
+
+
+  "text1": "Doa-Doa islami",
+
+
+
+  "text2": "Request a service",
+
+
+
+  "text3": "Hadits",
+
+
+
+  "text4": "Menyumbangkan",
+
+
+
+  "text5": "Kalender Islam",
+
+
+
+  "text6": "Uji imanmu",
+
+
+
+  "text7": "Radio Alkitab",
+
+
+
+  "text8": "Membaca ",
+
+
+
+  "text9": "Siaran langsung",
+
+
+
+  "text10": "Gereja terdekat",
+
+
+
+  "text11": "Kisah Para Nabi",
+
+
+
+  "text12": "Tanggal Ramadhan",
+
+
+
+  "text13": "Sedekah",
+
+
+
+  "text14": "Request a service",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  "text15": "Baca",
+
+
+
+  "text16": "Gereja terdekat",
+
+
+
+  "text17": "Siaran langsung",
+
+
+
+  "text18": "Stasiun radio buku",
+
+
+
+"menu27": "Uji imanmu",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Saluran + menu samping
+
+
+
+  "text19": "Rumah",
+
+
+
+  "text20": "Membaca",
+
+
+
+  "text21": "Request a service",
+
+
+
+  "text22": "Donasi",
+
+
+
+  "text23": "Akun",
+
+
+
+
+
+
+
+  "menu1": "Halaman Utama",
+
+
+
+  "menu2": "Membaca ",
+
+
+
+  "menu3": "Request a service",
+
+
+
+  "menu4": "Gereja terdekat",
+
+
+
+  "menu5": "Siaran langsung",
+
+
+
+  "menu6": "晚间饮品🍸",
+
+
+
+  "menu7": "Uji imanmu",
+
+
+
+  "menu8": "Menyumbangkan",
+
+
+
+  "menu9": "Doa-doa islami",
+
+
+
+  "menu10": "Hadits",
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  "menu11": "Kue ulang tahun dari kaca ❄️",
+
+
+
+  "menu12": "Minuman panas 🍵",
+
+
+
+  "menu13": "Kue Natal 🍪 ",
+
+
+
+  "menu14": "Resep makanan panas 🍲",
+
+
+
+  "menu15": " Doa hari ini 𖹭",
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  "menu16": "Sedekah 🍩",
+
+
+
+  "menu17": "Request a service",
+
+
+
+  "menu18": "Siaran Langsung",
+
+
+
+  "menu19": "Ruang Diskusi",
+
+
+
+  "menu20": "Zynor AI",
+
+
+
+  "menu21": "Pengaturan",
+
+
+
+  "menu22": "Akun Saya",
+
+
+
+  "menu23": "Dukungan",
+
+
+
+  "menu24": "..Diinstal oleh Aplikasi Al-Qur'an 📌",
+
+
+
+  "menu25": "............................Untuk berdonasi dan membantu",
+
+
+
+  "menu26": "Request a service",
+
+
+
+  
+
+
+
+  "menu28": "Tampilkan lebih banyak 📖",
+
+
+
+  "menu29": "🔴 Siaran langsung saluran Islam",
+
+
+
+  "menu30": "🔴 Tampilkan lebih banyak siaran langsung",
+
+
+
+  "menu31": "Halaman Utama",
+
+
+
+  "menu32": "Request a service",
+
+
+
+  
+
+
+
+  
+
+
+
+  "menu34": "Halaman Utama🔹",
+
+
+
+  "menu35": "Membaca ",
+
+
+
+  "menu36": "Request a service",
+
+
+
+  "menu37": "Gereja terdekat",
+
+
+
+  "menu38": "Siaran langsung",
+
+
+
+  "menu39": "Radio Alkitab",
+
+
+
+  "menu40": "Uji imanmu",
+
+
+
+  "menu41": "Menyumbangkan",
+
+
+
+  "menu61": "📝 Uji imanmu",
+
+
+
+  "menu43": "Hadits",
+
+
+
+  "menu44": "Kisah Para Nabi",
+
+
+
+  "menu60": "📖 Baca bukunya",
+
+
+
+  "menu59": "🔴 Tampilkan lebih banyak Langsung",
+
+
+
+  "menu47": "Wallpaper",
+
+
+
+  "menu48": "Berita Islam",
+
+
+
+  "menu58": "🎄 Resep Natal",
+
+
+
+  "menu50": "Request a service",
+
+
+
+  "menu51": "Siaran Langsung",
+
+
+
+  "menu52": "Ruang Diskusi",
+
+
+
+  "menu53": "Zynor.Al",
+
+
+
+  "menu54": "Pengaturan",
+
+
+
+  "menu55": "Akun Saya",
+
+
+
+  "menu56": "Dukungan",
+
+
+
+  "menu57": "Pengaturan dan Dukungan"
+
+
+
+  
+
+
+
+  
+
+
+
+        
+
+
+
+        
+
+
+
+    }
+
+
+
+};
+
+
+
+
+
+
+
+// دالة تفعيل اللغة (مع الحفظ)
+
+
+
+function changeLanguage(lang) {
+
+
+
+    const html = document.documentElement;
+
+
+
+    const body = document.body;
+
+
+
+
+
+
+
+    // حفظ اللغة المختارة
+
+
+
+    localStorage.setItem('alquran-lang', lang);
+
+
+
+
+
+
+
+    // تغيير اللغة والاتجاه
+
+
+
+    html.lang = lang;
+
+
+
+    html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+
+
+    body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+
+
+
+
+
+
+    // تغيير النصوص
+
+
+
+    for (let key in translations[lang]) {
+
+
+
+        const element = document.getElementById(key);
+
+
+
+        if (element) {
+
+
+
+            element.textContent = translations[lang][key];
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+// إغلاق القائمة عند تغيير اللغة
+
+
+
+sidebar.classList.remove('active');
+
+
+
+sidebarOverlay.classList.remove('active');
+
+
+
+
+
+
+
+// تعديل اتجاه القائمة بناءً على اللغة
+
+
+
+if (lang === 'en') {
+
+
+
+    sidebar.style.right = '-300px';
+
+
+
+    sidebar.style.left = 'auto';
+
+
+
+} else if (lang === 'ar') {
+
+
+
+    sidebar.style.left = '-300px';
+
+
+
+    sidebar.style.right = 'auto';
+
+
+
+}
+
+
+
+    // تغيير اتجاه التمرير
+
+
+
+    document.querySelectorAll('.poster').forEach(poster => {
+
+
+
+        poster.style.direction = lang === 'ar' ? 'ltr' : 'rtl';
+
+
+
+    });
+
+
+
+}
+
+
+
+
+
+
+
+// عند تحميل الصفحة
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+
+
+    const savedLang = localStorage.getItem('alquran-lang') || 'ar';
+
+
+
+    changeLanguage(savedLang);
+
+
+
+});
+
+
+
+</script>
+
+
+
+</body>
+
+
+
+</html>
+
+
+
+    <script>
+
+        // روابط صور الأيقونات لكل ثيم
+
+        const icons = {
+
+            light: {
+
+            	logozaki: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773121626/20260310_074647_cbmma7.png",
+
+                     },
+
+            dark: {
+
+            	logozaki: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773286747/20260312_053733_x32ing.png",
+
+                
+
+                
+
+            },
+
+            blue: {
+
+            	logozaki: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1773286747/20260312_053733_x32ing.png",
+
+                
+
+            }
+
+        };
+
+
+
+        // دالة تحديث الأيقونات بناءً على الثيم
+
+        function updateFooterIcons(theme) {
+
+            const iconMap = {
+
+            	'logozaki-icon': icons[theme].logozaki,
+
+                'logolist-icon': icons[theme].logolist,
+
+                'home-icon': icons[theme].home,
+
+                'quran-icon': icons[theme].quran,
+
+                'video-icon': icons[theme].video,
+
+                'grok-icon': icons[theme].grok,
+
+                'spaces-icon': icons[theme].spaces,
+
+                'account-icon': icons[theme].account,
+
+                'Imagesoon-icon': icons[theme].Imagesoon,
+
+                'alcha-icon': icons[theme].alcha,
+
+            };
+
+
+
+            Object.keys(iconMap).forEach(id => {
+
+                const img = document.getElementById(id);
+
+                if (img) img.src = iconMap[id];
+
+            });
+
+        }
+
+
+
+        // تحميل الثيم المخزن وتطبيق الأيقونات
+
+        function setTheme(theme) {
+
+            document.documentElement.setAttribute('data-theme', theme);
+
+            localStorage.setItem('theme', theme);
+
+            updateFooterIcons(theme);
+
+        }
+
+
+
+        // عند تحميل الصفحة
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+
+            setTheme(savedTheme);
+
+            
+
+            // Add ripple effect to footer icons
+
+            document.querySelectorAll('footer div').forEach(div => {
+
+                div.addEventListener('click', function(e) {
+
+                    const ripple = document.createElement('span');
+
+                    const rect = this.getBoundingClientRect();
+
+                    const size = Math.max(rect.width, rect.height);
+
+                    const x = e.clientX - rect.left - size / 2;
+
+                    const y = e.clientY - rect.top - size / 2;
+
+                    
+
+                    ripple.style.width = ripple.style.height = size + 'px';
+
+                    ripple.style.left = x + 'px';
+
+                    ripple.style.top = y + 'px';
+
+                    ripple.classList.add('ripple');
+
+                    
+
+                    this.appendChild(ripple);
+
+                    
+
+                    setTimeout(() => {
+
+                        ripple.remove();
+
+                    }, 600);
+
+                });
+
+            });
+
+        });
+
+
+
+        // دالة تبديل الثيم
+
+        function toggleTheme() {
+
+            const themes = ['light', 'dark', 'blue'];
+
+            const current = localStorage.getItem('theme') || 'light';
+
+            const nextIndex = (themes.indexOf(current) + 1) % themes.length;
+
+            setTheme(themes[nextIndex]);
+
+        }
+
+
+
+        // كود إخفاء وإظهار الشريط السفلي عند التمرير
+
+        let lastScrollTop = 0;
+
+        const footer = document.getElementById("foot");
+
+        window.addEventListener("scroll", function() {
+
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+
+                footer.classList.add("hidden");
+
+            } else {
+
+                footer.classList.remove("hidden");
+
+            }
+
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+
+        });
+
+
+
+        // Modal functions
+
+        function openModal() {
+
+            document.getElementById('customizeModal').style.display = 'flex';
+
+        }
+
+
+
+        function closeModal() {
+
+            document.getElementById('customizeModal').style.display = 'none';
+
+        }
+
+
+
+        function applyCustomization() {
+
+            // Implementation for customization
+
+            closeModal();
+
+        }
+
+    </script>
+
+
+
+<script language="JavaScript">
+
+
+
+<!--
+
+
+
+//Disable right click script III- By Renigade (renigade@mediaone.net) //Disable select-text script (IE4+, NS6+)- By Andy Scott //Visit http://hashem-earn-from-internet.blogspot.com/ 
+
+
+
+var message=""; 
+
+
+
+function clickIE() {
+
+
+
+if (document.all) {
+
+
+
+(message);return false;
+
+
+
+}
+
+
+
+} function clickNS(e) { 
+
+
+
+if (document.layers||(document.getElementById&&!document.all)) { 
+
+
+
+if (e.which==2||e.which==3) { (message); return false;
+
+
+
+} } } if (document.layers) { document.captureEvents(Event.MOUSEDOWN); 
+
+
+
+document.onmousedown=clickNS;
+
+
+
+} else { document.onmouseup=clickNS;
+
+
+
+document.oncontextmenu=clickIE; 
+
+
+
+} document.oncontextmenu=new Function("return false")
+
+
+
+function disableselect(e) { return false } function reEnable() { return true } 
+
+
+
+document.onselectstart=new Function ("return false") //if NS6 if (window.sidebar){ document.onmousedown=disableselect document.onclick=reEnable } //
+
+
+
+//-->
+
+
+
+</script>
+
+
+
+  
+
+
+
+  <script type='text/زاكي ديف'> 
+
+
+
+function nocontext(e) {var clickedTag = (e==null) ? event.srcElement.tagName : e.target.tagName; if (clickedTag == "IMG") {alert(alertMsg);return false;}} var alertMsg = "Uploading the image is prohibited.";document.oncontextmenu = nocontext; 
+
+
+
+  </script>
+
+
+    <script>
+// Worker.js - في Cloudflare Workers
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    
+    // توجيه الطلب إلى GitHub Pages الأصلي
+    const githubUrl = 'https://zakidev.github.io' + url.pathname + url.search;
+    
+    const response = await fetch(githubUrl, {
+      method: request.method,
+      headers: request.headers,
+      body: request.body
+    });
+    
+    // نسخ الـ Response مع تعديل Headers
+    const newResponse = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers
+    });
+    
+    // إضافة CORS
+    newResponse.headers.set('Access-Control-Allow-Origin', '*');
+    
+    return newResponse;
+  }
+};
+    </script>
