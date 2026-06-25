@@ -1,0 +1,3931 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة تشبه تويتر مع تبويبات وسلايدر</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <style>
+        * {
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        :root {
+            /* Light Mode (Default) */
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --top-bar-bg: #ffffff;
+            --tab-color: #657786;
+            --tab-active-color: #1da1f2;
+            --sidebar-bg: #f5f8fa;
+            --sidebar-hover-bg: #e1e8ed;
+           
+
+            /* Dark Mode */
+            &[data-theme="dark"] {
+                --background-color: #000;
+                --text-color: #ffffff;
+                --top-bar-bg: #000;
+                --tab-color: #657786;
+                --tab-active-color: #1da1f2;
+                --sidebar-bg: #000;
+                --sidebar-hover-bg: #000;
+                
+            }
+
+            
+            
+            
+            
+            /* Blue Mode */
+            &[data-theme="blue"] {
+                --background-color: #15202b;
+                --text-color: #ffffff;
+                --top-bar-bg: #15202b;
+                --tab-color: #657786;
+                --tab-active-color: #1da1f2;
+                --sidebar-bg: #1c252e;
+                --sidebar-hover-bg: #2a3b4c;
+                
+            }
+               /* 
+            لون قسم البث المباشر في الرئيسية 
+             --content-bg: #ffffff;
+            --content-bg: 
+            */
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .header-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .header-wrapper.hidden {
+            transform: translateY(-100%);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            color: var(--text-color);
+            background-color: var(--top-bar-bg);
+        }
+
+        .left-section i {
+            font-size: 40px;
+            color: var(--tab-active-color);
+            cursor: pointer;
+            transform: scaleX(-1);
+        }
+
+        .center-section {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .center-section i {
+            font-size: 30px;
+            color: var(--tab-active-color);
+        }
+
+        .right-section i {
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        .fixed-container {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            padding: 0;
+            background-color: var(--top-bar-bg);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--tab-color);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            color: var(--tab-color);
+            padding: 15px 0; /* مساحة بين صور القنوات الاكثر مشاهدة وبين خط فاصل مواقيت الصلاة*/
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .tab.active {
+            color: var(--tab-active-color);
+            border-bottom: 3px solid var(--tab-active-color);
+        }
+
+        #uniquePoster {
+            overflow-x: scroll;
+            overflow-y: hidden;
+            white-space: nowrap;
+            margin: 3px;
+            position: relative;
+            text-align: center;
+            background-color: var(--content-bg);
+        }
+
+        #uniquePoster.initial-load {
+            opacity: 0;
+            transform: translateY(-30px);
+            animation: slideFromTop 1s ease-out forwards;
+        }
+
+        @keyframes slideFromTop {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .arab {
+            transition: transform 0.4s ease;
+        }
+        .arab:active {
+            transform: scale(0.9);
+        }
+
+        .content {
+            display: none;
+            margin-top: 150px;
+            background-color: var(--content-bg);
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* إعدادات القائمة الجانبية */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px; /* مخفية خارج الشاشة */
+            width: 260px; /* زيادة العرض لاستيعاب الأيقونات والنصوص */
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            
+            
+            z-index: 1001;
+            overflow-y: auto; /* السماح بالتمرير داخل القائمة */
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        
+
+        .sidebar ul li i {
+            margin-left: 5px;
+        }
+
+        .sidebar ul li:hover {
+            background-color: var(--sidebar-hover-bg);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 998;
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        .overlay-content {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            
+            border: none;
+            overflow: hidden;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 10000;
+        }
+
+        .whatsapp-button img {
+            width: 40px;
+            height: 40px;
+        }
+        
+        /* لإزالة خط التسطير من جميع الروابط في صفحتك */
+a {
+    text-decoration: none;
+}
+
+/* لإزالة خط التسطير من عنصر معين فقط بواسطة ID */
+#myElementId {
+    text-decoration: none;
+}
+
+/* لإزالة خط التسطير من عنصر معين بواسطة Class */
+.myClassName {
+    text-decoration: none;
+}
+
+    </style>
+</head>
+<body>
+      <div class="header-wrapper" id="header-wrapper">
+        <div class="top-bar" id=" "top-bar"">
+            
+            	<div class="right-section">
+                         <i class="fas fa-bars" id="menu-toggle"></i>
+            </div>
+            <div class="center-section">
+                <img style="width: 40px; height: 40px;" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1751676108/20250705_034118_szza1a.png" alt="App logo"></a>
+
+            </div>
+            
+            
+            <div class="right-section">
+<a href="go:settings"><i class="fas fa-cog" id="menu-toggle"></i>
+
+
+
+</a> 
+    
+  </body>
+</html>
+    
+  
+
+
+
+            </div>
+        </div>
+
+        <div id="fixedContainer" class="fixed-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('for-you')"><p id="menu31">Home Page</div>
+                <div class="tab" onclick="window.open('go:vdk')"><p id="menu32">Clips Quran</div>
+            </div>
+        </div>
+        <div align="center" id="uniquePoster" class="initial-load">
+            <a href="go:05868588"><img class="arab" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739541122/oie_14143010BbjCt1c0_x3q3um.gif" alt="Live Channels / Quran Channel / Sunnah Channel / Makkah Al-Mukarramah" width="auto" height="42px"></a>
+            <a href="go:6858585"><img class="arab" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739541130/oie_14143535B6p3IIN4_1_exydd3.gif" alt="Live Channels / Iqraa Channel / Al-Risala Channel / Al-Nas" width="auto" height="42px"></a>
+            <a href="go:8585555"><img class="arab" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739541165/oie_14146510GdPMHS1_1_lgmnsw.gif" alt="Live Radio/Egypt Quran Radio/Al-Majd Quran Radio/Sunna Radio" width="auto" height="37px"></a>
+            <a href="go:6588855"><img class="arab" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739541149/oie_1414170YpNuT2do_kkmsif.gif" alt="Live Radio / Sheikh Abdul Basit Radio / Sheikh Maher Al-Muaiqly Radio / Sheikh Al-Minshawi Radio" width="auto" height="37px"></a>
+        </div>
+    </div>
+
+    <div class="container">
+       <div class="content" id="following"></div>
+        <div class="content active" id="for-you"></div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+    	
+    <br/>
+    <br/>
+    	     <!DOCTYPE html>
+
+
+<html>
+  <head>
+    
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+  </head>
+  <style media="screen">
+  .carousel-cell 
+    width: 100%;
+    
+
+    
+  </style>
+  <body>
+    
+
+      <div class="carousel-cell">
+<img class="w3-image" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752023486/20250709_041015_nrfae9.png" alt="App logo" class="logo-image">
+
+      </div>   
+</a> 
+    
+  </body>
+</html>
+        <ul>
+        	<br/>
+        <br/>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة أيقونات بمسافة قسرية وروابط</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        ul {
+            list-style: none; /* إزالة النقاط الافتراضية للقائمة */
+            
+            width: 255px; /* عرض مثال للقائمة */
+            border-radius: 8px;
+        }
+
+        /* الفئة الجديدة لعناصر القائمة لزيادة خصوصية CSS */
+        .icon-text-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex; /* لاستخدام flexbox لمحاذاة الأيقونة والنص */
+            align-items: center; /* لمحاذاة العناصر عموديا في المنتصف */
+            cursor: pointer; /* للإشارة إلى أنه قابل للنقر */
+            transition: background-color 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .icon-text-item:last-child {
+            border-bottom: none; /* إزالة الحدود من العنصر الأخير */
+        }
+
+        .icon-text-item:hover {
+            background-color: #f0f0f0; /* تأثير عند تمرير المؤشر */
+        }
+        
+        
+        
+        
+        
+        
+
+        /* إضافة مسافة بين الأيقونة والنص في القائمة الجانبية */
+.icon-text-item a {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* مسافة ثابتة بين الأيقونة والنص */
+    width: 100%;
+}
+
+.icon-text-item i {
+    margin-left: 0; /* إزالة الهامش القديم */
+    width: 20px; /* عرض ثابت للأيقونة */
+    text-align: center;
+}
+
+
+
+
+
+
+/* استهداف الأيقونات داخل القائمة */
+.icon-text-item i.fas {
+    font-size: 22px; /* حجم الأيقونة، يمكنك تغييره حسب الحاجة */
+        vertical-align: middle; /* محاذاة الأيقونة مع النص */
+}
+
+/* لتخصيص حجم النصوص إذا لزم الأمر */
+.icon-text-item a {
+    font-size: 18px; /* حجم النص */
+    display: flex;
+    align-items: center; /* محاذاة النص مع الأيقونة */
+}
+
+
+    </style>
+</head>
+<body>
+
+    <ul>
+            <li class="icon-text-item"><a href="#"><i class="fas fa-home"></i><p id="menu34"><b>الصفحة الرئيسية🔹 </b></p></a></li>
+            <li class="icon-text-item"><a href="go:7"><i class="fas fa-book-open"></i><p id="menu35"><b>القرآن صوت</b></p></a></li>
+            <li class="icon-text-item"><a href="go:mos"><i class="fas fa-quran"></i><p id="menu36"><b>المصحف</b></p></a></li>
+            <li class="icon-text-item"><a href="go:alsala"><i class="fas fa-mosque"></i><p id="menu37"><b>مواقيت الصلاة</b></p></a></li>
+            <li class="icon-text-item"><a href="go:Qiblah"><i class="fas fa-kaaba"></i><p id="menu38"><b>اتجاه القبلة</b></p></a></li>
+            <li class="icon-text-item"><a href="go:akrpm"><i class="fas fa-location-dot"></i><p id="menu39"><b>أقرب مسجد</b></p></a></li>
+            <li class="icon-text-item"><a href="go:spcs"><i class="fas fa-calculator"></i><p id="menu40"><b>السبحة</b></p></a></li>
+            <li class="icon-text-item"><a href="go:aska"><i class="fas fa-hands-praying"></i><p id="menu41"><b>الأذكار</b></p></a></li>
+            <li class="icon-text-item"><a href="go:dak"><i class="fas fa-person-praying"></i><p id="menu42"><b>الأدعية</b></p></a></li>
+            <li class="icon-text-item"><a href="go:hhhhhyggh"><i class="fas fa-book"></i><p id="menu43"><b>الأحاديث</b></p></a></li>
+            <li class="icon-text-item"><a href="go:k"><i class="fas fa-film"></i><p id="menu44"><b>قصص الأنبياء</b></p></a></li>
+            <li class="icon-text-item"><a href="go:altkom"><i class="fas fa-calendar"></i><p id="menu45"><b>التقويم</b></p></a></li>
+</b></p></a></li>
+            <li class="icon-text-item"><a href="go:R"><i class="fas fa-star-and-crescent"></i><p id="menu46"><b>المناسبات</b></p></a></li>
+            <li class="icon-text-item"><a href="go:Islamicpng"><i class="fas fa-image"></i><p id="menu47"><b>الخلفيات</b></p></a></li>
+            <li class="icon-text-item"><a href="go:webneos"><i class="fas fa-newspaper"></i><p id="menu48"><b>الموجز</b></p></a></li>
+            <li class="icon-text-item"><a href="go:tpragg"><i class="fas fa-heart"></i><p id="menu49"><b>تبرع 🍩</b></p></a></li>
+            <li class="icon-text-item"><a href="go:vdk"><i class="fas fa-play"></i><p id="menu50"><b>Clips Quran</b></p></a></li>
+            <li class="icon-text-item"><a href="go:live"><i class="fas fa-circle"></i><p id="menu51"><b>البث المباشر</b></p></a></li>
+            <li class="icon-text-item"><a href="go:rodeoQuran"><i class="fas fa-microphone"></i><p id="menu52"><b>المساحات</b></p></a></li>
+            <li class="icon-text-item"><a href="go:grok"><i class="fas fa-robot"></i><p id="menu53"><b>Zynor AI</b></p></a></li>
+            </b></p></a></li>
+    </ul>
+
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة الأدوات الاحترافية (مع Font Awesome)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+               {
+            font-family: Arial, sans-serif;
+            
+            
+            margin: 0;
+            
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* لتبدأ من الأعلى */
+            min-height: 100vh;
+        }
+
+        .accordion-item {
+            width: 100%;
+            max-width: 400px; /* تحديد أقصى عرض للعنصر */
+            margin-bottom: 10px;
+            border-radius: 8px;
+            overflow: hidden; /* لضمان عدم تجاوز المحتوى للحدود الدائرية */
+        }
+
+        .accordion-header {
+            
+            
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            border-bottom: 3px 
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            
+        }
+
+        .accordion-header .arrow {
+            transition: transform 0.3s ease;
+            font-size: 1.2em; /* حجم أكبر للسهم */
+        }
+
+        /* سهم Font Awesome الافتراضي (لأسفل) */
+        .accordion-header .arrow.fa-chevron-down {
+            transform: rotate(0deg); /* تأكد من أنه غير مدور افتراضيا */
+        }
+
+        /* تدوير السهم لأعلى عند التفعيل */
+        .accordion-header.active .arrow.fa-chevron-down {
+            transform: rotate(180deg); /* تدوير 180 درجة ليصبح للأعلى */
+        }
+
+
+        .accordion-content {
+            
+            max-height: 0; /* إخفاء المحتوى في البداية */
+            overflow: hidden;
+            transition: max-height 0.4s ease-out; /* حركة سلسة للفتح والإغلاق */
+        }
+
+        .accordion-content.open {
+            /* يتم ضبط max-height بواسطة JavaScript */
+        }
+
+        .accordion-content-inner {
+         
+        }
+
+        .accordion-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            text-decoration: none;
+            
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-option:hover {
+            
+        }
+
+        .accordion-option .icon {
+            margin-left: 10px; /* مسافة بين الأيقونة والنص */
+            font-size: 1.2em;
+            width: 20px; /* لتثبيت عرض الأيقونة ومنع تذبذب النص */
+            text-align: center; /* لتوسيط الأيقونة داخل عرضها */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="accordion-item">
+        <div class="accordion-header" id="professionalToolsHeader">
+        	
+        <li class="icon-text-item"><i class="fas fa-chevron-down arrow"></i><p id="menu57"><b></b></p></a></li>
+</i> </div>
+
+        <div class="accordion-content" id="professionalToolsContent">
+            <div class="accordion-content-inner">
+            	
+             <li class="icon-text-item">
+            <a href="go:settings"><i class="fas fa-cog"></i> <span id="menu54">الاعدادات</span></a>
+        </li>
+        <li class="icon-text-item">
+            <a href="go:hfgghh"><i class="fas fa-user-circle"></i> <span id="menu55">حسابي</span></a>
+        </li>
+        <li class="icon-text-item">
+            <a href="http://action_dark"><i class="fas fa-moon"></i> <span id="menu100">الوضع الداكن علي صورة البداية</span></a>
+        </li>
+            <br/>
+            <head>
+  <style>
+    .fas.fa-moon {
+      font-size: 30px; /* Adjust this value as needed */
+    }
+  </style>
+</head>
+<body>
+  <li onclick="toggleTheme()"> ..<i class="fas fa-moon"></i><b></a></li>
+</body>
+
+<li class="icon-text-item">
+<button onclick="changeLanguage('ar')">العربية</button>
+    <button onclick="changeLanguage('en')">English</button>
+    <button onclick="changeLanguage('zh')">中文</button>
+<button onclick="changeLanguage('id')">Indonesia</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const header = document.getElementById('professionalToolsHeader');
+        const content = document.getElementById('professionalToolsContent');
+
+        header.addEventListener('click', function() {
+            // تبديل فئة 'active' للرأس
+            header.classList.toggle('active');
+            // تبديل فئة 'open' للمحتوى
+            content.classList.toggle('open');
+
+            // إذا كان المحتوى مفتوحًا (له فئة 'open')، اضبط max-height على ارتفاعه الفعلي
+            if (content.classList.contains('open')) {
+                // استخدم scrollHeight للحصول على الارتفاع الكامل للمحتوى المخفي
+                content.style.maxHeight = content.scrollHeight + 'px';
+            } else {
+                content.style.maxHeight = '0'; // إغلاق المحتوى
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
+   </ul>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    </div>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const headerWrapper = document.getElementById('header-wrapper'); // <--- أضفنا هذا السطر
+    let lastScrollTop = 0; // <--- أضفنا هذا السطر لمتغير تتبع التمرير
+
+    // التحقق من وجود العناصر الأساسية
+    if (!sidebar || !menuToggle || !sidebarOverlay || !headerWrapper) { // <--- أضفنا headerWrapper هنا
+        console.error('One or more essential elements (sidebar, menuToggle, sidebarOverlay, headerWrapper) not found in DOM');
+        return;
+    }
+
+    // --- وظيفة الشريط الجانبي (Sidebar) ---
+    // فتح/إغلاق القائمة عند النقر على زر القائمة
+    menuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    });
+
+    // إغلاق القائمة عند النقر على الـ overlay
+    sidebarOverlay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeSidebar();
+    });
+
+    // إغلاق القائمة عند اللمس على الـ overlay
+    sidebarOverlay.addEventListener('touchend', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closeSidebar();
+    });
+
+    // منع إغلاق القائمة عند النقر أو التمرير داخلها
+    sidebar.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    sidebar.addEventListener('touchmove', (event) => {
+        event.stopPropagation(); // السماح بالتمرير داخل القائمة دون إغلاق
+    });
+
+    // دالة إغلاق القائمة
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
+
+    // --- وظيفة الشريط العلوي (Header) - الإخفاء والإظهار عند التمرير ---
+    window.addEventListener('scroll', () => {
+        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+        // إخفاء الشريط العلوي عند التمرير لأسفل (بعد 50 بكسل)
+        if (currentScroll > lastScrollTop && currentScroll > 50) {
+            headerWrapper.classList.add('hidden');
+        }
+        // إظهار الشريط العلوي عند التمرير لأعلى
+        else {
+            headerWrapper.classList.remove('hidden');
+        }
+
+        // تحديث قيمة lastScrollTop للمقارنة التالية
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    });
+
+    // --- وظيفة تبديل الثيمات (Theme Toggle) ---
+    // هذه الوظائف يمكن أن تبقى خارج DOMContentLoaded أو داخلها، كلاهما يعمل
+    // ولكن لإبقاء كل ما يتعلق بالصفحة في مكان واحد، أفضل وضعها بالداخل.
+    const themes = ['light', 'dark', 'blue'];
+    let currentThemeIndex = 0;
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        currentThemeIndex = themes.indexOf(theme);
+    }
+
+    function toggleTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        setTheme(themes[currentThemeIndex]);
+    }
+
+    // تحميل الثيم المحفوظ أو الافتراضي إلى light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    // إذا كان لديك زر لتبديل الثيم، تأكد من إضافة مستمع حدث له، مثلاً:
+    // const themeToggleButton = document.getElementById('theme-toggle-button');
+    // if (themeToggleButton) {
+    //     themeToggleButton.addEventListener('click', toggleTheme);
+    // }
+});
+
+// إذا كان لديك أي دوال أخرى مثل switchTab أو closeOverlay
+// التي يتم استدعاؤها مباشرة من HTML (مثل onclick)، يمكن أن تبقى خارج DOMContentLoaded
+// أو يجب أن تكون معرفة كـ window.switchTab = function() {...} لتكون متاحة عالميًا.
+// ولكن الطريقة الأفضل هي ربطها بأزرار باستخدام addEventListener داخل DOMContentLoaded.
+
+// Theme toggle functionality
+const themes = ['light', 'dark', 'blue']; //1
+let currentThemeIndex = 0;
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme); //2
+    localStorage.setItem('theme', theme); //3
+    currentThemeIndex = themes.indexOf(theme);
+}
+
+function toggleTheme() {
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    setTheme(themes[currentThemeIndex]); //4
+}
+
+// Load saved theme or default to light
+const savedTheme = localStorage.getItem('theme') || 'light'; //5
+setTheme(savedTheme); //6
+
+    </script>
+</body>
+</html>
+</div></div>
+<style>
+        .custom-line {
+            border: none;
+            height: 2px; /* يمكنك تعديل سمك الخط */
+            background-color: #4f96cc;
+            margin: 0; /* تصفير المسافات حول الخط */
+        }
+    </style>
+<hr class="custom-line">
+</html>
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مواقيت الصلاة</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/choices.js@10.2.1/public/assets/styles/choices.min.css" rel="stylesheet">
+<style>
+    .app-container {
+      font-family: 'Cairo', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      text-align: center;
+    }
+    .container {
+      position: relative;
+      width: 400px;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .refresh-btn, .manual-location-btn {
+      position: absolute;
+      top: 10px;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: white;
+    }
+    .refresh-btn {
+      left: 10px;
+      background-color: #4CAF50;
+    }
+    /* التحكم في بعد المسافة بين زر تحديث وزر اضافه يدويا*/
+    .manual-location-btn {
+      left: 47px;
+      background-color: #007BFF;
+    }
+    .refresh-btn:disabled, .manual-location-btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .refresh-btn:hover, .manual-location-btn:hover {
+      opacity: 0.9;
+    }
+    .countdown {
+      font-size: 22px;
+      margin: 20px 0;
+      
+    }
+    .prayer-time-info {
+      font-size: 16px;
+      margin-top: 10px;
+      
+    }
+    .location {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    #manualLocationForm {
+      display: none;
+      margin-top: 20px;
+      
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    #manualLocationForm .choices {
+      margin: 5px 0;
+      width: 100%;
+    }
+    #manualLocationForm select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: 'Cairo', sans-serif;
+    }
+    #manualLocationForm button {
+      padding: 8px 15px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #manualLocationForm button:hover {
+      background-color: #218838;
+    }
+    .choices__inner {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: 'Cairo', sans-serif;
+    }
+    .choices__list--dropdown {
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .choices__input {
+      font-family: 'Cairo', sans-serif;
+    }
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .modal-content h3 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: #333;
+    }
+    .modal-content button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      color: white;
+    }
+    .modal-content .auto-update-btn {
+      background-color: #4CAF50;
+    }
+    .modal-content .manual-update-btn {
+      background-color: #007BFF;
+    }
+    .modal-content button:hover {
+      opacity: 0.9;
+    }
+    .modal-content .close-modal {
+      background-color: #dc3545;
+      margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+<div class="app-container">
+ <div class="container">
+  <button class="refresh-btn" id="refresh-btn" onclick="showUpdateModal()">
+    <i class="fas fa-sync-alt"></i>
+  </button>
+  <button class="manual-location-btn" id="manual-location-btn" onclick="toggleManualLocationForm()">
+    <i class="fas fa-map-marker-alt"></i>
+  </button>
+
+  <!-- ✅ مفتاح الربط هنا -->
+  <p class="location" id="location">جاري تحميل الموقع...</p>
+
+  <div id="manualLocationForm">
+    <select id="countrySelect">
+      <option value="" id="selectCountry">اختر الدولة</option>
+    </select>
+    <select id="citySelect">
+      <option value="" id="selectCity">اختر المدينة</option>
+    </select>
+
+    <button onclick="fetchPrayerTimesByCity()" id="updateManualBtn">تحديث المواقيت يدويًا</button>
+  </div>
+
+  <!-- ✅ مفتاح الربط هنا -->
+  <p class="countdown" id="countdown">جاري حساب الوقت...</p>
+  <p class="prayer-time-info" id="prayer-info">جاري تحميل مواقيت الصلاة...</p>
+</div>
+
+<!-- Modal -->
+<div id="updateModal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">تحديث مواقيت الصلاة</h3>
+    <button class="manual-update-btn" id="manualUpdateBtn" onclick="updateManualPrayerTimes()">تحديث المواقيت المحددة</button>
+    <button class="auto-update-btn" id="autoUpdateBtn" onclick="refreshPrayerTimes()">تحديث باستخدام الموقع</button>
+    <button class="close-modal" id="closeModalBtn" onclick="closeUpdateModal()">إغلاق</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.1/public/assets/scripts/choices.min.js"></script>
+<script>
+  let isProcessing = false;
+
+  // قائمة الدول مع الأسماء بالعربية والإنجليزية
+  const countries = [
+    { name_ar: "أفغانستان", name_en: "Afghanistan" },
+    { name_ar: "ألبانيا", name_en: "Albania" },
+    { name_ar: "الجزائر", name_en: "Algeria" },
+    { name_ar: "أندورا", name_en: "Andorra" },
+    { name_ar: "أنغولا", name_en: "Angola" },
+    { name_ar: "أنتيغوا وبربودا", name_en: "Antigua and Barbuda" },
+    { name_ar: "الأرجنتين", name_en: "Argentina" },
+    { name_ar: "أرمينيا", name_en: "Armenia" },
+    { name_ar: "أستراليا", name_en: "Australia" },
+    { name_ar: "النمسا", name_en: "Austria" },
+    { name_ar: "أذربيجان", name_en: "Azerbaijan" },
+    { name_ar: "الباهاما", name_en: "Bahamas" },
+    { name_ar: "البحرين", name_en: "Bahrain" },
+    { name_ar: "بنغلاديش", name_en: "Bangladesh" },
+    { name_ar: "بربادوس", name_en: "Barbados" },
+    { name_ar: "بيلاروسيا", name_en: "Belarus" },
+    { name_ar: "بلجيكا", name_en: "Belgium" },
+    { name_ar: "بليز", name_en: "Belize" },
+    { name_ar: "بنين", name_en: "Benin" },
+    { name_ar: "بوتان", name_en: "Bhutan" },
+    { name_ar: "بوليفيا", name_en: "Bolivia" },
+    { name_ar: "البوسنة والهرسك", name_en: "Bosnia and Herzegovina" },
+    { name_ar: "بوتسوانا", name_en: "Botswana" },
+    { name_ar: "البرازيل", name_en: "Brazil" },
+    { name_ar: "بروناي", name_en: "Brunei" },
+    { name_ar: "بلغاريا", name_en: "Bulgaria" },
+    { name_ar: "بوركينا فاسو", name_en: "Burkina Faso" },
+    { name_ar: "بوروندي", name_en: "Burundi" },
+    { name_ar: "كمبوديا", name_en: "Cambodia" },
+    { name_ar: "الكاميرون", name_en: "Cameroon" },
+    { name_ar: "كندا", name_en: "Canada" },
+    { name_ar: "الرأس الأخضر", name_en: "Cape Verde" },
+    { name_ar: "جمهورية إفريقيا الوسطى", name_en: "Central African Republic" },
+    { name_ar: "تشاد", name_en: "Chad" },
+    { name_ar: "تشيلي", name_en: "Chile" },
+    { name_ar: "الصين", name_en: "China" },
+    { name_ar: "كولومبيا", name_en: "Colombia" },
+    { name_ar: "جزر القمر", name_en: "Comoros" },
+    { name_ar: "الكونغو - برازافيل", name_en: "Congo - Brazzaville" },
+    { name_ar: "الكونغو - كينشاسا", name_en: "Congo - Kinshasa" },
+    { name_ar: "كوستاريكا", name_en: "Costa Rica" },
+    { name_ar: "كوت ديفوار", name_en: "Côte d'Ivoire" },
+    { name_ar: "كرواتيا", name_en: "Croatia" },
+    { name_ar: "كوبا", name_en: "Cuba" },
+    { name_ar: "قبرص", name_en: "Cyprus" },
+    { name_ar: "التشيك", name_en: "Czech Republic" },
+    { name_ar: "الدنمارك", name_en: "Denmark" },
+    { name_ar: "جيبوتي", name_en: "Djibouti" },
+    { name_ar: "دومينيكا", name_en: "Dominica" },
+    { name_ar: "جمهورية الدومينيكان", name_en: "Dominican Republic" },
+    { name_ar: "الإكوادور", name_en: "Ecuador" },
+    { name_ar: "مصر", name_en: "Egypt" },
+    { name_ar: "السلفادور", name_en: "El Salvador" },
+    { name_ar: "غينيا الاستوائية", name_en: "Equatorial Guinea" },
+    { name_ar: "إريتريا", name_en: "Eritrea" },
+    { name_ar: "إستونيا", name_en: "Estonia" },
+    { name_ar: "إسواتيني", name_en: "Eswatini" },
+    { name_ar: "إثيوبيا", name_en: "Ethiopia" },
+    { name_ar: "فيجي", name_en: "Fiji" },
+    { name_ar: "فنلندا", name_en: "Finland" },
+    { name_ar: "فرنسا", name_en: "France" },
+    { name_ar: "الغابون", name_en: "Gabon" },
+    { name_ar: "غامبيا", name_en: "Gambia" },
+    { name_ar: "جورجيا", name_en: "Georgia" },
+    { name_ar: "ألمانيا", name_en: "Germany" },
+    { name_ar: "غانا", name_en: "Ghana" },
+    { name_ar: "اليونان", name_en: "Greece" },
+    { name_ar: "غرينادا", name_en: "Grenada" },
+    { name_ar: "غواتيمالا", name_en: "Guatemala" },
+    { name_ar: "غينيا", name_en: "Guinea" },
+    { name_ar: "غينيا بيساو", name_en: "Guinea-Bissau" },
+    { name_ar: "غيانا", name_en: "Guyana" },
+    { name_ar: "هايتي", name_en: "Haiti" },
+    { name_ar: "هندوراس", name_en: "Honduras" },
+    { name_ar: "هونغ كونغ", name_en: "Hong Kong" },
+    { name_ar: "هنغاريا", name_en: "Hungary" },
+    { name_ar: "آيسلندا", name_en: "Iceland" },
+    { name_ar: "الهند", name_en: "India" },
+    { name_ar: "إندونيسيا", name_en: "Indonesia" },
+    { name_ar: "إيران", name_en: "Iran" },
+    { name_ar: "العراق", name_en: "Iraq" },
+    { name_ar: "أيرلندا", name_en: "Ireland" },
+    { name_ar: "إيطاليا", name_en: "Italy" },
+    { name_ar: "جامايكا", name_en: "Jamaica" },
+    { name_ar: "اليابان", name_en: "Japan" },
+    { name_ar: "الأردن", name_en: "Jordan" },
+    { name_ar: "كازاخستان", name_en: "Kazakhstan" },
+    { name_ar: "كينيا", name_en: "Kenya" },
+    { name_ar: "كيريباتي", name_en: "Kiribati" },
+    { name_ar: "كوريا الشمالية", name_en: "North Korea" },
+    { name_ar: "كوريا الجنوبية", name_en: "South Korea" },
+    { name_ar: "الكويت", name_en: "Kuwait" },
+    { name_ar: "قيرغيزستان", name_en: "Kyrgyzstan" },
+    { name_ar: "لاوس", name_en: "Laos" },
+    { name_ar: "لاتفيا", name_en: "Latvia" },
+    { name_ar: "لبنان", name_en: "Lebanon" },
+    { name_ar: "ليسوتو", name_en: "Lesotho" },
+    { name_ar: "ليبيريا", name_en: "Liberia" },
+    { name_ar: "ليبيا", name_en: "Libya" },
+    { name_ar: "ليختنشتاين", name_en: "Liechtenstein" },
+    { name_ar: "ليتوانيا", name_en: "Lithuania" },
+    { name_ar: "لوكسمبورغ", name_en: "Luxembourg" },
+    { name_ar: "مدغشقر", name_en: "Madagascar" },
+    { name_ar: "مالاوي", name_en: "Malawi" },
+    { name_ar: "ماليزيا", name_en: "Malaysia" },
+    { name_ar: "جزر المالديف", name_en: "Maldives" },
+    { name_ar: "مالي", name_en: "Mali" },
+    { name_ar: "مالطا", name_en: "Malta" },
+    { name_ar: "جزر مارشال", name_en: "Marshall Islands" },
+    { name_ar: "موريتانيا", name_en: "Mauritania" },
+    { name_ar: "موريشيوس", name_en: "Mauritius" },
+    { name_ar: "المكسيك", name_en: "Mexico" },
+    { name_ar: "ميكرونيزيا", name_en: "Micronesia" },
+    { name_ar: "مولدوفا", name_en: "Moldova" },
+    { name_ar: "موناكو", name_en: "Monaco" },
+    { name_ar: "منغوليا", name_en: "Mongolia" },
+    { name_ar: "الجبل الأسود", name_en: "Montenegro" },
+    { name_ar: "المغرب", name_en: "Morocco" },
+    { name_ar: "موزمبيق", name_en: "Mozambique" },
+    { name_ar: "ميانمار", name_en: "Myanmar" },
+    { name_ar: "ناميبيا", name_en: "Namibia" },
+    { name_ar: "ناورو", name_en: "Nauru" },
+    { name_ar: "نيبال", name_en: "Nepal" },
+    { name_ar: "هولندا", name_en: "Netherlands" },
+    { name_ar: "نيوزيلندا", name_en: "New Zealand" },
+    { name_ar: "نيكاراغوا", name_en: "Nicaragua" },
+    { name_ar: "النيجر", name_en: "Niger" },
+    { name_ar: "نيجيريا", name_en: "Nigeria" },
+    { name_ar: "مقدونيا الشمالية", name_en: "North Macedonia" },
+    { name_ar: "النرويج", name_en: "Norway" },
+    { name_ar: "عمان", name_en: "Oman" },
+    { name_ar: "باكستان", name_en: "Pakistan" },
+    { name_ar: "بالاو", name_en: "Palau" },
+    { name_ar: "فلسطين", name_en: "Palestine" },
+    { name_ar: "بنما", name_en: "Panama" },
+    { name_ar: "بابوا غينيا الجديدة", name_en: "Papua New Guinea" },
+    { name_ar: "باراغواي", name_en: "Paraguay" },
+    { name_ar: "بيرو", name_en: "Peru" },
+    { name_ar: "الفلبين", name_en: "Philippines" },
+    { name_ar: "بولندا", name_en: "Poland" },
+    { name_ar: "البرتغال", name_en: "Portugal" },
+    { name_ar: "قطر", name_en: "Qatar" },
+    { name_ar: "رومانيا", name_en: "Romania" },
+    { name_ar: "روسيا", name_en: "Russia" },
+    { name_ar: "رواندا", name_en: "Rwanda" },
+    { name_ar: "سانت كيتس ونيفيس", name_en: "Saint Kitts and Nevis" },
+    { name_ar: "سانت لوسيا", name_en: "Saint Lucia" },
+    { name_ar: "سانت فينسنت والغرينادين", name_en: "Saint Vincent and the Grenadines" },
+    { name_ar: "ساموا", name_en: "Samoa" },
+    { name_ar: "سان مارينو", name_en: "San Marino" },
+    { name_ar: "ساو تومي وبرينسيبي", name_en: "São Tomé and Príncipe" },
+    { name_ar: "السعودية", name_en: "Saudi Arabia" },
+    { name_ar: "السنغال", name_en: "Senegal" },
+    { name_ar: "صربيا", name_en: "Serbia" },
+    { name_ar: "سيشيل", name_en: "Seychelles" },
+    { name_ar: "سيراليون", name_en: "Sierra Leone" },
+    { name_ar: "سنغافورة", name_en: "Singapore" },
+    { name_ar: "سلوفاكيا", name_en: "Slovakia" },
+    { name_ar: "سلوفينيا", name_en: "Slovenia" },
+    { name_ar: "جزر سليمان", name_en: "Solomon Islands" },
+    { name_ar: "الصومال", name_en: "Somalia" },
+    { name_ar: "جنوب إفريقيا", name_en: "South Africa" },
+    { name_ar: "جنوب السودان", name_en: "South Sudan" },
+    { name_ar: "إسبانيا", name_en: "Spain" },
+    { name_ar: "سريلانكا", name_en: "Sri Lanka" },
+    { name_ar: "السودان", name_en: "Sudan" },
+    { name_ar: "سورينام", name_en: "Suriname" },
+    { name_ar: "السويد", name_en: "Sweden" },
+    { name_ar: "سويسرا", name_en: "Switzerland" },
+    { name_ar: "سوريا", name_en: "Syria" },
+    { name_ar: "تايوان", name_en: "Taiwan" },
+    { name_ar: "طاجيكستان", name_en: "Tajikistan" },
+    { name_ar: "تنزانيا", name_en: "Tanzania" },
+    { name_ar: "تايلاند", name_en: "Thailand" },
+    { name_ar: "تيمور الشرقية", name_en: "Timor-Leste" },
+    { name_ar: "توغو", name_en: "Togo" },
+    { name_ar: "تونغا", name_en: "Tonga" },
+    { name_ar: "ترينيداد وتوباغو", name_en: "Trinidad and Tobago" },
+    { name_ar: "تونس", name_en: "Tunisia" },
+    { name_ar: "تركيا", name_en: "Turkey" },
+    { name_ar: "تركمانستان", name_en: "Turkmenistan" },
+    { name_ar: "توفالو", name_en: "Tuvalu" },
+    { name_ar: "أوغندا", name_en: "Uganda" },
+    { name_ar: "أوكرانيا", name_en: "Ukraine" },
+    { name_ar: "الإمارات", name_en: "United Arab Emirates" },
+    { name_ar: "المملكة المتحدة", name_en: "United Kingdom" },
+    { name_ar: "الولايات المتحدة", name_en: "United States" },
+    { name_ar: "أوروغواي", name_en: "Uruguay" },
+    { name_ar: "أوزبكستان", name_en: "Uzbekistan" },
+    { name_ar: "فانواتو", name_en: "Vanuatu" },
+    { name_ar: "الفاتيكان", name_en: "Vatican City" },
+    { name_ar: "فنزويلا", name_en: "Venezuela" },
+    { name_ar: "فيتنام", name_en: "Vietnam" },
+    { name_ar: "اليمن", name_en: "Yemen" },
+    { name_ar: "زامبيا", name_en: "Zambia" },
+    { name_ar: "زيمبابوي", name_en: "Zimbabwe" }
+  ];
+
+  // قائمة المدن (موسعة لتشمل مدن متعددة لكل دولة)
+  const citiesByCountry = {
+    "Egypt": ["القاهرة", "الإسكندرية", "الجيزة", "أسوان", "الأقصر", "المنصورة", "طنطا", "سوهاج", "الزقازيق", "بورسعيد", "السويس", "دمياط", "أسيوط", "بني سويف", "قنا"],
+    "Saudi Arabia": ["الرياض", "جدة", "مكة المكرمة", "المدينة المنورة", "الدمام", "الطائف", "تبوك", "الخبر", "بريدة", "حائل", "خميس مشيط", "الأحساء", "القطيف", "نجران", "ينبع"],
+    "United Arab Emirates": ["دبي", "أبوظبي", "الشارقة", "العين", "عجمان", "رأس الخيمة", "الفجيرة", "خورفكان", "دبا الفجيرة", "مدينة زايد", "كلباء"],
+    "Jordan": ["عمان", "إربد", "الزرقاء", "المفرق", "العقبة", "مادبا", "الكرك", "السلط", "جرش", "عجلون", "الطفيلة"],
+    "Kuwait": ["الكويت", "حولي", "الفروانية", "الأحمدي", "مبارك الكبير", "الجهراء", "صباح السالم", "سلوى", "الفنطاس", "الفحيحيل"],
+    "Bahrain": ["المنامة", "المحرق", "الرفاع", "مدينة حمد", "عيسى", "ستره", "جدحفص"],
+    "Qatar": ["الدوحة", "الريان", "الوكرة", "الخور", "أم صلال", "الشمال", "دخان"],
+    "Oman": ["مسقط", "صلالة", "صحار", "نزوى", "صور", "البريمي", "عبري", "الرستاق"],
+    "Algeria": ["الجزائر", "وهران", "قسنطينة", "عنابة", "البليدة", "باتنة", "سطيف", "سيدي بلعباس", "بسكرة", "تيارت", "تلمسان", "بجاية", "مستغانم"],
+    "Morocco": ["الرباط", "الدار البيضاء", "فاس", "مراكش", "طنجة", "أكادير", "مكناس", "وجدة", "القنيطرة", "تطوان", "الصويرة"],
+    "Tunisia": ["تونس", "صفاقس", "سوسة", "القيروان", "قابس", "بنزرت", "أريانة", "المنستير", "قصر هلال", "جمال"],
+    "Libya": ["طرابلس", "بنغازي", "مصراتة", "الزاوية", "سبها", "الخمس", "درنة", "سرت", "غريان"],
+    "Sudan": ["الخرطوم", "أم درمان", "بحري", "بورتسودان", "كسلا", "الأبيض", "ود مدني", "نيالا", "الفاشر"],
+    "Lebanon": ["بيروت", "طرابلس", "صيدا", "صور", "النبطية", "زحلة", "بعلبك", "جونية", "عاليه"],
+    "Palestine": ["غزة", "القدس", "رام الله", "نابلس", "الخليل", "بيت لحم", "جنين", "طولكرم", "قلقيلية"],
+    "Iraq": ["بغداد", "البصرة", "الموصل", "أربيل", "النجف", "كربلاء", "السليمانية", "كركوك", "العمارة", "الرمادي"],
+    "Syria": ["دمشق", "حلب", "حمص", "اللاذقية", "طرطوس", "دير الزور", "حماة", "الرقة"],
+    "Yemen": ["صنعاء", "عدن", "تعز", "الحديدة", "إب", "ذمار", "المكلا", "سيئون"],
+    "Turkey": ["إسطنبول", "أنقرة", "إزمير", "بورصة", "أنطاليا", "أضنة", "قونية", "غازي عنتاب", "ديار بكر", "مرسين"],
+    "France": ["باريس", "مرسيليا", "ليون", "تولوز", "نيس", "نانت", "ستراسبورغ", "مونبلييه", "بوردو", "ليل"],
+    "United States": ["نيويورك", "لوس أنجلوس", "شيكاغو", "هيوستن", "ميامي", "بوسطن", "واشنطن", "سان فرانسيسكو", "سياتل", "دالاس", "فيلادلفيا"],
+    "United Kingdom": ["لندن", "مانشستر", "برمنغهام", "ليدز", "غلاسكو", "ليفربول", "نيوكاسل", "شيفيلد", "بريستول"],
+    "India": ["نيودلهي", "مومباي", "بنغالور", "كلكتا", "تشيناي", "حيدر آباد", "بونا", "أحمد آباد", "سورات", "جايبور", "لكناو"],
+    "Brazil": ["ساو باولو", "ريو دي جانيرو", "برازيليا", "سلفادور", "فورتاليزا", "بيلو هوريزونتي", "ماناوس", "كوريتيبا"],
+    "Japan": ["طوكيو", "يوكوهاما", "أوساكا", "ناغويا", "سابورو", "كيوتو", "فوكوكا", "كوبي", "كاواساكي"],
+    // مدن افتراضية لباقي الدول
+    ...Object.fromEntries(countries.map(country => [
+      country.name_en,
+      [`${country.name_ar} (محافظة)`, `${country.name_ar} (العاصمة )`]
+    ]))
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initPrayerTimes();
+    initializeChoices();
+  });
+
+  function initPrayerTimes() {
+    if (localStorage.getItem("latitude") && localStorage.getItem("longitude")) {
+      const latitude = parseFloat(localStorage.getItem("latitude"));
+      const longitude = parseFloat(localStorage.getItem("longitude"));
+      fetchPrayerTimes(latitude, longitude);
+      getLocationName(latitude, longitude).then(name => {
+        document.getElementById('location').innerText = name;
+      });
+    } else if (localStorage.getItem("selectedCountry") && localStorage.getItem("selectedCity")) {
+      fetchPrayerTimesByCityFromStorage();
+    } else {
+      getLocation();
+    }
+    setInterval(checkDayChange, 60 * 60 * 1000);
+  }
+
+  function checkDayChange() {
+    const now = new Date();
+    if (window.lastFetchDate && now.getDate() !== new Date(window.lastFetchDate).getDate()) {
+      initPrayerTimes();
+    }
+  }
+
+  function showUpdateModal() {
+    document.getElementById('updateModal').style.display = 'flex';
+  }
+
+  function closeUpdateModal() {
+    document.getElementById('updateModal').style.display = 'none';
+  }
+
+  function updateManualPrayerTimes() {
+    const country = localStorage.getItem("selectedCountry");
+    const city = localStorage.getItem("selectedCity");
+    if (country && city) {
+      closeUpdateModal();
+      fetchPrayerTimesByCityFromStorage();
+    } else {
+      closeUpdateModal();
+      toggleManualLocationForm();
+      document.getElementById('countdown').innerText = 'الرجاء اختيار الدولة والمدينة أولاً';
+    }
+  }
+
+  function refreshPrayerTimes() {
+    if (isProcessing) return;
+    isProcessing = true;
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
+    refreshBtn.disabled = true;
+    clearInterval(window.countdownInterval);
+    document.getElementById('manualLocationForm').style.display = 'none';
+    document.getElementById('manual-location-btn').innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+    closeUpdateModal();
+    getLocation();
+  }
+
+  function toggleManualLocationForm() {
+    const form = document.getElementById('manualLocationForm');
+    const manualBtn = document.getElementById('manual-location-btn');
+    if (form.style.display === 'block') {
+      form.style.display = 'none';
+      manualBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>  ';
+    } else {
+      form.style.display = 'block';
+      manualBtn.innerHTML = '<i class="fas fa-times"></i> ';
+    }
+  }
+
+  function getLocation() {
+    document.getElementById('location').innerText = 'جاري تحديد الموقع...';
+    document.getElementById('countdown').innerText = 'جاري التحميل...';
+    document.getElementById('prayer-info').innerText = '';
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          showPrayerTimes(position);
+        },
+        error => {
+          showError(error);
+          resetState();
+        },
+        { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
+      );
+    } else {
+      document.getElementById('location').innerText = 'المتصفح لا يدعم تحديد الموقع';
+      document.getElementById('countdown').innerText = 'برجاء تفعيل ميزة الموقع أو تحقق من إعدادات المتصفح';
+      document.getElementById('prayer-info').innerText = 'أو استخدم زر إدخال الموقع يدويًا';
+      toggleManualLocationForm();
+      resetState();
+    }
+  }
+
+  async function showPrayerTimes(position) {
+    const { latitude, longitude } = position.coords;
+    localStorage.setItem("latitude", latitude);
+    localStorage.setItem("longitude", longitude);
+    localStorage.removeItem("selectedCountry");
+    localStorage.removeItem("selectedCity");
+
+    const locationName = await getLocationName(latitude, longitude);
+    document.getElementById('location').innerText = locationName || 'الموقع الحالي';
+    await fetchPrayerTimes(latitude, longitude);
+  }
+
+  async function getLocationName(latitude, longitude) {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=14&addressdetails=1`);
+      const data = await response.json();
+      
+      const city = data.address.city || data.address.town || data.address.village || '';
+      const state = data.address.state || '';
+      const country = data.address.country || '';
+      
+      let locationParts = [];
+      if (city && !/^\d+$/.test(city)) locationParts.push(city);
+      if (state && !/^\d+$/.test(state) && state !== city) locationParts.push(state);
+      if (country && !/^\d+$/.test(country)) locationParts.push(country);
+
+      return locationParts.length > 0 ? locationParts.join('، ') : 'الموقع الحالي';
+    } catch (error) {
+      console.error('خطأ في جلب اسم الموقع:', error);
+      return 'الموقع الحالي';
+    }
+  }
+
+  function showError(error) {
+    let message;
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        message = "تم رفض الوصول إلى الموقع، برجاء تفعيل ميزة الموقع في المتصفح أو اختر الموقع يدويًا";
+        break;
+      case error.POSITION_UNAVAILABLE:
+        message = "تعذر تحديد الموقع، تحقق من إعدادات الجهاز أو اختر الموقع يدويًا";
+        break;
+      case error.TIMEOUT:
+        message = "انتهت مهلة جلب الموقع، حاول مرة أخرى أو اختر الموقع يدويًا";
+        break;
+      default:
+        message = "حدث خطأ غير معروف، حاول مرة أخرى أو اختر الموقع يدويًا";
+    }
+    document.getElementById('location').innerText = 'فشل تحديد الموقع';
+    document.getElementById('countdown').innerText = message;
+    document.getElementById('prayer-info').innerText = 'أو استخدم زر إدخال الموقع يدويًا';
+    toggleManualLocationForm();
+  }
+
+  async function fetchPrayerTimes(latitude, longitude, retry = false) {
+    try {
+      const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
+      const data = await response.json();
+      if (data.code === 200) {
+        const times = data.data.timings;
+        startCountdown(times);
+        window.lastFetchDate = new Date();
+      } else {
+        document.getElementById('location').innerText = 'فشل جلب البيانات';
+        document.getElementById('countdown').innerText = 'تعذر جلب مواقيت الصلاة';
+        document.getElementById('prayer-info').innerText = 'أو استخدم زر إدخال الموقع يدويًا';
+        toggleManualLocationForm();
+      }
+    } catch (error) {
+      document.getElementById('location').innerText = 'خطأ في الاتصال';
+      document.getElementById('countdown').innerText = 'تحقق من الإنترنت وحاول مرة أخرى';
+      document.getElementById('prayer-info').innerText = 'أو استخدم زر إدخال الموقع يدويًا';
+      toggleManualLocationForm();
+      if (!retry) {
+        setTimeout(() => fetchPrayerTimes(latitude, longitude, true), 5000);
+      }
+    } finally {
+      resetState();
+    }
+  }
+
+  async function fetchPrayerTimesByCity() {
+    const countrySelect = document.getElementById('countrySelect');
+    const citySelect = document.getElementById('citySelect');
+    const country = countrySelect.value;
+    const city = citySelect.value;
+    const manualBtn = document.getElementById('manual-location-btn');
+    if (!country || !city) {
+      document.getElementById('countdown').innerText = 'الرجاء اختيار الدولة والمدينة';
+      return;
+    }
+    isProcessing = true;
+    manualBtn.disabled = true;
+    manualBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ';
+
+    try {
+      const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`);
+      const data = await response.json();
+      if (data.code === 200) {
+        const times = data.data.timings;
+        const countryNameAr = countries.find(c => c.name_en === country)?.name_ar || country;
+        document.getElementById('location').innerText = `${city}، ${countryNameAr}`;
+        localStorage.removeItem("latitude");
+        localStorage.removeItem("longitude");
+        localStorage.setItem("selectedCountry", country);
+        localStorage.setItem("selectedCity", city);
+        startCountdown(times);
+        window.lastFetchDate = new Date();
+        // إخفاء النافذة وإعادة تعيين زر إدخال الموقع
+        document.getElementById('manualLocationForm').style.display = 'none';
+        manualBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+        countrySelect.value = '';
+        citySelect.value = '';
+      } else {
+        document.getElementById('countdown').innerText = 'تعذر جلب مواقيت الصلاة، تأكد من اختيار الدولة والمدينة';
+        document.getElementById('prayer-info').innerText = 'حاول مرة أخرى';
+      }
+    } catch (error) {
+      document.getElementById('countdown').innerText = 'خطأ في الاتصال، تحقق من الإنترنت';
+      document.getElementById('prayer-info').innerText = 'حاول مرة أخرى';
+    } finally {
+      isProcessing = false;
+      manualBtn.disabled = false;
+      manualBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i>';
+      resetState();
+    }
+  }
+
+  async function fetchPrayerTimesByCityFromStorage() {
+    const country = localStorage.getItem("selectedCountry");
+    const city = localStorage.getItem("selectedCity");
+    if (!country || !city) return;
+
+    isProcessing = true;
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
+    refreshBtn.disabled = true;
+
+    try {
+      const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`);
+      const data = await response.json();
+      if (data.code === 200) {
+        const times = data.data.timings;
+        const countryNameAr = countries.find(c => c.name_en === country)?.name_ar || country;
+        document.getElementById('location').innerText = `${city}، ${countryNameAr}`;
+        startCountdown(times);
+        window.lastFetchDate = new Date();
+      } else {
+        document.getElementById('countdown').innerText = 'تعذر جلب مواقيت الصلاة، تأكد من اختيار الدولة والمدينة';
+        document.getElementById('prayer-info').innerText = 'حاول مرة أخرى';
+        toggleManualLocationForm();
+      }
+    } catch (error) {
+      document.getElementById('countdown').innerText = 'خطأ في الاتصال، تحقق من الإنترنت';
+      document.getElementById('prayer-info').innerText = 'حاول مرة أخرى';
+      toggleManualLocationForm();
+    } finally {
+      isProcessing = false;
+      refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+      refreshBtn.disabled = false;
+      resetState();
+    }
+  }
+
+  function initializeChoices() {
+    const countrySelect = document.getElementById('countrySelect');
+    const citySelect = document.getElementById('citySelect');
+    const choicesError = document.getElementById('choicesError');
+
+    // تهيئة قائمة الدول
+    const countryOptions = countries.map(country => ({
+      value: country.name_en,
+      label: country.name_ar
+    }));
+    countrySelect.innerHTML = '<option value="">اختر الدولة</option>';
+    countryOptions.forEach(option => {
+      const opt = document.createElement('option');
+      opt.value = option.value;
+      opt.textContent = option.label;
+      countrySelect.appendChild(opt);
+    });
+
+    // تهيئة قائمة المدن الافتراضية
+    citySelect.innerHTML = '<option value="">اختر المدينة</option>';
+
+    // تحديث قائمة المدن عند تغيير الدولة (بدون Choices.js)
+    function updateCityOptions() {
+      const country = countrySelect.value;
+      citySelect.innerHTML = '<option value="">اختر المدينة</option>';
+      if (country && citiesByCountry[country]) {
+        citiesByCountry[country].forEach(city => {
+          const opt = document.createElement('option');
+          opt.value = city;
+          opt.textContent = city;
+          citySelect.appendChild(opt);
+        });
+      } else {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'لا توجد مدن متاحة';
+        opt.disabled = true;
+        citySelect.appendChild(opt);
+      }
+    }
+
+    // إضافة مستمع لتحديث المدن
+    countrySelect.addEventListener('change', updateCityOptions);
+
+    // التحقق من توفر Choices.js
+    if (typeof Choices === 'undefined') {
+      console.error('Choices.js لم يتم تحميله، سيتم استخدام القوائم العادية');
+      choicesError.style.display = 'block';
+      return;
+    }
+
+    try {
+      // تهيئة Choices.js للدول
+      const countryChoices = new Choices(countrySelect, {
+        searchEnabled: true,
+        searchPlaceholderValue: 'ابحث عن الدولة (عربي/إنجليزي)',
+        itemSelectText: '',
+        shouldSort: false,
+        maxItemCount: -1,
+        searchFields: ['label', 'value']
+      });
+
+      // تهيئة Choices.js للمدن
+      const cityChoices = new Choices(citySelect, {
+        searchEnabled: true,
+        searchPlaceholderValue: 'ابحث عن المدينة',
+        itemSelectText: '',
+        shouldSort: false,
+        maxItemCount: -1
+      });
+
+      // تحديث قائمة المدن عند تغيير الدولة (مع Choices.js)
+      countrySelect.addEventListener('change', () => {
+        const country = countrySelect.value;
+        cityChoices.clearStore();
+        cityChoices.setChoices([
+          { value: '', label: 'اختر المدينة', disabled: true, selected: true }
+        ], 'value', 'label', true);
+
+        if (country && citiesByCountry[country]) {
+          const cities = citiesByCountry[country].map(city => ({
+            value: city,
+            label: city
+          }));
+          cityChoices.setChoices(cities, 'value', 'label', false);
+        } else {
+          cityChoices.setChoices([
+            { value: '', label: 'لا توجد مدن متاحة', disabled: true, selected: true }
+          ], 'value', 'label', true);
+        }
+      });
+    } catch (error) {
+      console.error('خطأ في تهيئة Choices.js:', error);
+      choicesError.style.display = 'block';
+    }
+  }
+
+  function resetState() {
+    isProcessing = false;
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    refreshBtn.disabled = false;
+  }
+
+  function startCountdown(times) {
+    const now = new Date();
+    const prayerTimes = [
+      { name: 'الفجر', time: times.Fajr },
+      { name: 'الظهر', time: times.Dhuhr },
+      { name: 'العصر', time: times.Asr },
+      { name: 'المغرب', time: times.Maghrib },
+      { name: 'العشاء', time: times.Isha }
+    ];
+
+    let nextPrayer, nextPrayerTime;
+    for (let i = 0; i < prayerTimes.length; i++) {
+      const [hours, minutes] = prayerTimes[i].time.split(':').map(Number);
+      const prayerDate = new Date(now);
+      prayerDate.setHours(hours, minutes, 0, 0);
+      if (prayerDate > now) {
+        nextPrayer = prayerTimes[i].name;
+        nextPrayerTime = prayerDate;
+        break;
+      }
+    }
+
+    if (!nextPrayer) {
+      const [hours, minutes] = times.Fajr.split(':').map(Number);
+      nextPrayerTime = new Date(now);
+      nextPrayerTime.setDate(now.getDate() + 1);
+      nextPrayerTime.setHours(hours, minutes, 0, 0);
+      nextPrayer = 'الفجر';
+    }
+
+    document.getElementById('prayer-info').innerText = `صلاة ${nextPrayer} الساعة ${nextPrayerTime.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+    updateCountdown(nextPrayerTime, nextPrayer);
+
+    clearInterval(window.countdownInterval);
+    window.countdownInterval = setInterval(() => updateCountdown(nextPrayerTime, nextPrayer), 1000);
+  }
+
+  function updateCountdown(time, prayer) {
+    const now = new Date();
+    const diff = time - now;
+    if (diff <= 0) {
+      document.getElementById('countdown').innerText = `حان وقت صلاة ${prayer}!`;
+      clearInterval(window.countdownInterval);
+      return;
+    }
+
+    const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+    const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+    const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+    document.getElementById('countdown').innerText = `الوقت المتبقي لـ ${prayer}: ${hours}:${minutes}:${seconds}`;
+  }
+</script>
+</body>
+</html>
+
+</div></div>
+<style>
+        .custom-line {
+            border: none;
+            height: 2px; /* يمكنك تعديل سمك الخط */
+            background-color: #4f96cc;
+            margin: 0; /* تصفير المسافات حول الخط */
+        }
+    </style>
+<hr class="custom-line">
+</html>
+
+</div></div>
+
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تطبيق ديني</title>
+<style type="text/css">
+* { user-select: none; margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+body { font-family: Arial, sans-serif; }
+.poster { overflow-x: scroll; overflow-y: hidden; white-space: nowrap; margin: 3px; text-align: center; }
+.image-container { display: inline-block; margin: 5px; text-align: center; }
+.image-container img { display: block; margin: 0 auto; }
+.image-container p { font-size: 14px; margin-top: 5px; font-weight: bold; }
+
+/* أزرار تغيير اللغة */
+.lang-buttons {
+    text-align: center;
+    margin: 10px 0;
+}
+.lang-buttons button {
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+.lang-buttons button:hover {
+    background-color: #45a049;
+}
+html[lang="en"] .sidebar {
+    right: auto;
+    left: -300px;
+}
+
+html[lang="en"] .sidebar.active {
+    left: 0;
+}
+
+
+html[lang="zh"] .sidebar {
+    right: auto;
+    left: -300px;
+}
+
+html[lang="zh"] .sidebar.active {
+    left: 0;
+}
+
+
+html[lang="id"] .sidebar {
+    right: auto;
+    left: -300px;
+}
+
+html[lang="id"] .sidebar.active {
+    left: 0;
+}
+
+
+
+
+
+
+
+
+
+
+</style>
+</head>
+<body>
+
+
+</div>
+
+<!-- القائمة الأولى -->
+<div align="center" class="poster">
+    <div class="image-container">
+        <a href="go:dak"><img src="https://i.imgur.com/2NU9dpu.png" alt="Icon" height="63" width="63"></a>
+        <a href="go:dak"><p id="text1">الأدعية</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:mos"><img src="https://i.imgur.com/vTZf2V0.png" alt="Icon" height="55" width="55"></a>
+        <a href="go:mos"><p id="text2">المصحف</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:hhhhhyggh"><img src="https://i.imgur.com/B2clSsk.png" alt="Icon" height="55" width="55"></a>
+        <a href="go:hhhhhyggh"><p id="text3">الأحاديث</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:aska"><img src="https://i.imgur.com/WLaxsIP.png" alt="Icon" height="63" width="63"></a>
+        <a href="go:aska"><p id="text4">الأذكار</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:altkom"><img src="https://i.imgur.com/HiiLwqG.png" alt="Icon" height="53" width="53"></a>
+        <a href="go:altkom"><p id="text5">التقويم</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:spcs"><img src="https://i.imgur.com/xi95799.png" alt="Icon" height="60" width="60"></a>
+        <a href="go:spcs"><p id="text6">السبحة</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:akrpm"><img src="https://i.imgur.com/6DRA3lN.png" alt="Icon" height="60" width="60"></a>
+        <a href="go:akrpm"><p id="text7">أقرب مسجد</p></a>
+    </div>
+</div>
+
+<!-- دمج كل الكود في ملف واحد -->
+<script>
+// دمج كلا الكائنين مع إضافة اللغة الصينية
+const translations = {
+    ar: {
+        // القوائم السابقة
+        text1: "الأدعية", text2: "المصحف", text3: "الأحاديث", text4: "الأذكار", text5: "التقويم", text6: "السبحة", text7: "أقرب مسجد",
+        text8: "القرآن صوت", text9: "اتجاة القبلة", text10: "مواقيت الصلاة", text11: "قصص الأنبياء", text12: "موعد رمضان", text13: "تبرع",
+        text14: "مقاطع قرآنية", text15: "الموجز الإسلامي", text16: "خلفيات إسلامية", text17: "إذاعات القرآن", text18: "البث المباشر",
+        // القنوات + القائمة الجانبية
+        text19: "قناة القران لايف", text20: "قناة السنة لايف", text21: "قناة المجد لايف", text22: "قناة إقرأ لايف", text23: "قناة صاد لايف",
+        menu1: "الصفحة الرئيسية", menu2: "القرآن صوت", menu3: "المصحف", menu4: "مواقيت الصلاة", menu5: "اتجاة القبلة",
+        menu6: "أقرب مسجد", menu7: "السبحة", menu8: "الأذكار", menu9: "الأدعية", menu10: "الأحاديث",
+        menu11: "قصص الأنبياء", menu12: "التقويم", menu13: "المناسبات", menu14: "الخلفيات", menu15: "الموجز",
+        menu16: "تبرع 🍩", menu17: "مقاطع قرآنية", menu18: "البث المباشر", menu19: "المساحات", menu20: "Zynor AI",
+        menu21: "الإعدادات", menu22: "حسابي", menu23: "الدعم", menu24: "تم التثبيت بواسطة تطبيق القرآن الكريم 📌", 
+        menu25: "للتبرع والمساعدة", menu26: "مقاطع قرآنية", menu27: "المقاطع الأشهر مشاهدة", menu28: "📖 عرض المزيد",
+        menu29: "البث المباشر للقنوات الإسلامية 🔴", menu30: "عرض المزيد 🔴"  ,menu31: "الصفحة الرئيسية" ,menu32: "مقاطع قرانية"  ,menu33: ".منصة الأضواء ✪",
+        menu34: "الصفحة الرئيسية🔹 ", menu35: "القرآن صوت",  menu36: "المصحف",  menu37: "مواقيت الصلاة",  menu38: "اتجاة القبلة",  menu39: "أقرب مسجد",   menu40: "السبحة",  menu41: "الاذكار",  menu42: "الأدعية",   menu43: "الاحاديث",   menu44: "قصص الانبياء",   menu45: "التقويم",   menu46: "المناسبات",  menu47: "الخلفيات",  menu48: "الموجز",  menu49: "تبرع 🍩",    menu50: "مقاطع قرآنية",  menu51: "البث المباشر",  menu52: "المساحات",  menu53: "Zynor Al",   menu54: "الاعدادات",   menu55: "حسابي",   menu56: "الدعم",  menu57: "الإعدادات والدعم",
+  "531645255": "أذكار رمضان",
+  "065825225": "إمساكية رمضان",
+  
+  
+    "85858858": "أذكار رمضان",
+      "86835555": "إمساكية رمضان",
+    "8134845": "بطاقة تهنئة بمناسبة العيد",
+    
+        "404684548": "بطاقة تهنئة بمناسبة العيد",
+  },
+    en: {
+        // القوائم السابقة
+        text1: "Supplications", text2: "Al Mushaf", text3: "Hadiths", text4: "Remembrance", text5: "Calendar", text6: "Rosary", text7: "Nearest Mosque",
+        text8: "Quran Audio", text9: "Qibla Direction", text10: "Prayer Times", text11: "Prophets Stories", text12: "Ramadan Date", text13: "Donate",
+        text14: "Quran Clips", text15: "Islamic News", text16: "Islamic Wallpapers", text17: "Quran Radio", text18: "Live Stream",
+        // القنوات + القائمة الجانبية
+        text19: "Quran Channel Live", text20: "Sunnah Channel Live", text21: "Al-Majd Channel Live", text22: "Iqraa Channel Live", text23: "Sadd Channel Live",
+        menu1: "Home Page", menu2: "Quran Audio", menu3: "Holy Quran", menu4: "Prayer Times", menu5: "Qibla Direction",
+        menu6: "Nearest Mosque", menu7: "Rosary", menu8: "Remembrance", menu9: "Supplications", menu10: "Hadiths",
+        menu11: "Prophets Stories", menu12: "Calendar", menu13: "Events", menu14: "Wallpapers", menu15: "Islamic News",
+        menu16: "Donate 🍩", menu17: "Quran Clips", menu18: "Live Stream", menu19: "Spaces", menu20: "Zynor AI",
+        menu21: "Settings", menu22: "My Account", menu23: "Support", menu24: "..Installed by Alquran App 📌", 
+        menu25: "To donate and help", menu26: "Quran Clips", menu27: "Most viewed clips", menu28: "Show more 📖",
+        menu29: "🔴 Live broadcast of Islamic channels", menu30: "🔴 Show more Live" ,menu31: "Home Page" ,menu32: "Quran Clips"  ,menu33: "..Spotlight ✪",
+        menu34: "Home Page🔹 ", menu35: "Quran Audio",  menu36: "Al Mushaf",  menu37: "Prayer Times",  menu38: "Qibla Direction",  menu39: "Nearest Mosque",   menu40: "Rosary",  menu41: "Remembrance",  menu42: "Supplications",   menu43: "Hadiths",   menu44: "Prophets Stories",   menu45: "Calendar",   menu46: "Events",  menu47: "Wallpapers",  menu48: "Islamic News",  menu49: "Donate 🍩",    menu50: "Quran Clips",  menu51: "Live Stream",  menu52: "Spaces",  menu53: "Zynor.Al",   menu54: "Settings",   menu55: "My Account",   menu56: "Support",  menu57: ".Settings and Support",
+        "531645255": "Ramadan supplications",
+        "065825225": "Ramadan timetable",
+        
+        
+        "85858858": "Ramadan supplications",
+        "86835555": "Ramadan timetable",
+            "8134845": "Eid greeting card",
+            
+                "404684548": "Eid greeting card",
+    },
+    zh: {
+        // القوائم السابقة
+        text1: "杜阿", text2: "阿尔穆沙夫", text3: "圣训", text4: "男 阿尔·穆斯林", text5: "日历", text6: "念珠", text7: "最近的清真寺",
+        text8: "音频古兰经", text9: "朝拜方向", text10: "祈祷时间", text11: "先知故事", text12: "斋月日期", text13: "捐款",
+        text14: "古兰经剪辑", text15: "伊斯兰教新闻", text16: "伊斯兰壁纸", text17: "古兰经电台", text18: "直播",
+        // القنوات + القائمة الجانبية
+        text19: "古兰经频道直播", text20: "圣训频道直播", text21: "Al-Majd频道直播", text22: "Iqraa频道直播", text23: "Sadd频道直播",
+        menu1: "主页", menu2: "古兰经音频", menu3: "古兰经", menu4: "礼拜时间", menu5: "朝觐方向",
+        menu6: "最近的清真寺", menu7: "念珠", menu8: "记念词", menu9: "祈祷文", menu10: "圣训",
+        menu11: "先知故事", menu12: "日历", menu13: "活动", menu14: "壁纸", menu15: "伊斯兰资讯",
+        menu16: "捐款 🍩", menu17: "古兰经剪辑", menu18: "直播", menu19: "空间", menu20: "Zynor AI",
+        menu21: "设置", menu22: "我的账户", menu23: "支持", menu24: "..由古兰经应用安装 📌", 
+        menu25: "捐款与帮助", menu26: "古兰经片段", menu27: "最受欢迎的片段", menu28: "显示更多 📖",
+        menu29: "最著名的伊斯兰频道的现场直播 🔴", menu30: "显示更多直播 🔴" ,menu31: "主页" ,menu32: "古兰经剪辑",menu33: "..聚光 上 ✪",
+       menu34: "主页🔹 ", menu35: "音频古兰经",  menu36: "阿尔穆沙夫",  menu37: "祈祷时间",  menu38: "朝拜方向",  menu39: "最近的清真寺",   menu40: "念珠",  menu41: "男阿尔·穆斯林",  menu42: "杜阿",   menu43: "圣训",   menu44: "先知故事",   menu45: "日历",   menu46: "斋月日期",  menu47: "伊斯兰壁纸",  menu48: "伊斯兰教新闻",  menu49: "捐款 🍩",    menu50: "古兰经剪辑",  menu51: "直播",  menu52: "古兰经电台",  menu53: "Zynor.Al",   menu54: "设置",   menu55: "我的账户",   menu56: "支持",  menu57: ".设置和支持",
+        "531645255": "斋月祈祷文",
+        "531645255": "斋月时间表",
+        
+        "85858858": "斋月祈祷文",
+        "86835555": "斋月时间表",
+        "8134845": "开斋节贺卡",
+        "404684548": "开斋节贺卡",
+        },
+        id: {
+  // Menu utama
+  "text1": "Doa-Doa islami",
+  "text2": "Al-Mushaf",
+  "text3": "Hadits",
+  "text4": "Dzikir",
+  "text5": "Kalender Islam",
+  "text6": "Tasbih",
+  "text7": "Masjid Terdekat",
+  "text8": "Audio Al-Qur'an",
+  "text9": "Arah Kiblat",
+  "text10": "Jadwal Shalat",
+  "text11": "Kisah Para Nabi",
+  "text12": "Tanggal Ramadhan",
+  "text13": "Sedekah",
+  "text14": "Cuplikan Al-Qur'an",
+  "text15": "Berita Islam",
+  "text16": "Wallpaper Islami",
+  "text17": "Radio Al-Qur'an",
+  "text18": "Siaran Langsung",
+
+  // Saluran + menu samping
+  "text19": "Siaran Langsung Saluran Al-Qur'an",
+  "text20": "Siaran Langsung Saluran Sunnah",
+  "text21": "Siaran Langsung Saluran Al-Majd",
+  "text22": "Siaran Langsung Saluran Iqraa",
+  "text23": "Siaran Langsung Saluran Sadd",
+
+  "menu1": "Halaman Utama",
+  "menu2": "Audio Al-Qur'an",
+  "menu3": "Al-Mushaf",
+  "menu4": "Jadwal Shalat",
+  "menu5": "Arah Kiblat",
+  "menu6": "Masjid Terdekat",
+  "menu7": "Tasbih",
+  "menu8": "Dzikir",
+  "menu9": "Doa-doa islami",
+  "menu10": "Hadits",
+  "menu11": "Kisah Para Nabi",
+  "menu12": "Kalender Islam",
+  "menu13": "Peristiwa",
+  "menu14": "Wallpaper",
+  "menu15": "Berita Islam",
+  "menu16": "Sedekah 🍩",
+  "menu17": "Cuplikan Al-Qur'an",
+  "menu18": "Siaran Langsung",
+  "menu19": "Ruang Diskusi",
+  "menu20": "Zynor AI",
+  "menu21": "Pengaturan",
+  "menu22": "Akun Saya",
+  "menu23": "Dukungan",
+  "menu24": "..Diinstal oleh Aplikasi Al-Qur'an 📌",
+  "menu25": "Untuk berdonasi dan membantu",
+  "menu26": "Cuplikan Al-Qur'an",
+  "menu27": "Cuplikan paling banyak dilihat",
+  "menu28": "Tampilkan lebih banyak 📖",
+  "menu29": "🔴 Siaran langsung saluran Islam",
+  "menu30": "🔴 Tampilkan lebih banyak siaran langsung",
+  "menu31": "Halaman Utama",
+  "menu32": "Cuplikan Al-Qur'an",
+  "menu33": "..Sorotan ✪",
+  "menu34": "Halaman Utama🔹",
+  "menu35": "Audio Al-Qur'an",
+  "menu36": "Al-Mushaf",
+  "menu37": "Jadwal Shalat",
+  "menu38": "Arah Kiblat",
+  "menu39": "Masjid Terdekat",
+  "menu40": "Tasbih",
+  "menu41": "Dzikir",
+  "menu42": "Doa-doa islami",
+  "menu43": "Hadits",
+  "menu44": "Kisah Para Nabi",
+  "menu45": "Kalender Islam",
+  "menu46": "Peristiwa",
+  "menu47": "Wallpaper",
+  "menu48": "Berita Islam",
+  "menu49": "Sedekah 🍩",
+  "menu50": "Cuplikan Al-Qur'an",
+  "menu51": "Siaran Langsung",
+  "menu52": "Ruang Diskusi",
+  "menu53": "Zynor.Al",
+  "menu54": "Pengaturan",
+  "menu55": "Akun Saya",
+  "menu56": "Dukungan",
+  "menu57": "Pengaturan dan Dukungan",
+  "531645255": "Doa-doa Ramadan",
+"065825225": "Jadwal Ramadan",
+        
+        "85858858": "Doa-doa Ramadan",
+        "86835555": "Jadwal Ramadan",
+        "8134845": "Kartu ucapan Idul Fitri",
+        "404684548": "Kartu ucapan Idul Fitri",
+    }
+};
+
+// دالة تفعيل اللغة (مع الحفظ)
+function changeLanguage(lang) {
+    const html = document.documentElement;
+    const body = document.body;
+
+    // حفظ اللغة المختارة
+    localStorage.setItem('alquran-lang', lang);
+
+    // تغيير اللغة والاتجاه
+    html.lang = lang;
+    html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    // تغيير النصوص
+    for (let key in translations[lang]) {
+        const element = document.getElementById(key);
+        if (element) {
+            element.textContent = translations[lang][key];
+        }
+    }
+
+// إغلاق القائمة عند تغيير اللغة
+sidebar.classList.remove('active');
+sidebarOverlay.classList.remove('active');
+
+// تعديل اتجاه القائمة بناءً على اللغة
+if (lang === 'ar') {
+    sidebar.style.right = '-300px';
+    sidebar.style.left = 'auto';
+} else if (lang === 'en') {
+    sidebar.style.left = '-300px';
+    sidebar.style.right = 'auto';
+}
+    // تغيير اتجاه التمرير
+    document.querySelectorAll('.poster').forEach(poster => {
+        poster.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+    });
+}
+
+// عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('alquran-lang') || 'ar';
+    changeLanguage(savedLang);
+});
+</script>
+<script>
+// === 1. كائن الترجمة الكامل ===
+const prayerTexts = {
+  ar: {
+    location: "جاري تحميل الموقع...",
+    countdown: "جاري حساب الوقت...",
+    prayerInfo: "جاري تحميل مواقيت الصلاة...",
+    selectCountry: "اختر الدولة",
+    selectCity: "اختر المدينة",
+    updateManualBtn: "تحديث المواقيت يدويًا",
+    modalTitle: "تحديث مواقيت الصلاة",
+    manualUpdateBtn: "تحديث المواقيت المحددة",
+    autoUpdateBtn: "تحديث باستخدام الموقع",
+    closeModalBtn: "إغلاق",
+    locationDenied: "تم رفض الوصول إلى الموقع",
+    locationUnavailable: "تعذر تحديد الموقع",
+    timeout: "انتهت مهلة جلب الموقع",
+    connectionError: "خطأ في الاتصال",
+    prayerNow: "حان وقت صلاة",
+    pleaseSelect: "الرجاء اختيار الدولة والمدينة",
+    fajr: "الفجر",
+    dhuhr: "الظهر",
+    asr: "العصر",
+    maghrib: "المغرب",
+    isha: "العشاء",
+    timeRemaining: "الوقت المتبقي لـ",
+    prayerTimeAt: "صلاة {prayer} الساعة {time}"
+  },
+  en: {
+    location: "Loading location...",
+    countdown: "Calculating time...",
+    prayerInfo: "Loading prayer times...",
+    selectCountry: "Select Country",
+    selectCity: "Select City",
+    updateManualBtn: "Update Times Manually",
+    modalTitle: "Update Prayer Times",
+    manualUpdateBtn: "Update Selected Times",
+    autoUpdateBtn: "Update by Location",
+    closeModalBtn: "Close",
+    locationDenied: "Location access denied",
+    locationUnavailable: "Location unavailable",
+    timeout: "Location request timeout",
+    connectionError: "Connection error",
+    prayerNow: "It's time for",
+    pleaseSelect: "Please select country and city",
+    fajr: "Fajr",
+    dhuhr: "Dhuhr",
+    asr: "Asr",
+    maghrib: "Maghrib",
+    isha: "Isha",
+    timeRemaining: "Time remaining for",
+    prayerTimeAt: "Prayer {prayer} at {time}"
+  },
+  zh: {
+    location: "正在加载位置...",
+    countdown: "正在计算时间...",
+    prayerInfo: "正在加载礼拜时间...",
+    selectCountry: "选择国家",
+    selectCity: "选择城市",
+    updateManualBtn: "手动更新时间",
+    modalTitle: "更新礼拜时间",
+    manualUpdateBtn: "更新所选时间",
+    autoUpdateBtn: "使用位置更新",
+    closeModalBtn: "关闭",
+    locationDenied: "位置访问被拒绝",
+    locationUnavailable: "无法获取位置",
+    timeout: "位置请求超时",
+    connectionError: "连接错误",
+    prayerNow: "现在是礼拜时间",
+    pleaseSelect: "请选择国家和城市",
+    fajr: "晨礼",
+    dhuhr: "晌礼",
+    asr: "晡礼",
+    maghrib: "昏礼",
+    isha: "宵礼",
+    timeRemaining: "距离",
+    prayerTimeAt: "{prayer} 礼拜时间 {time}"
+  },
+  id: {
+    location: "Memuat lokasi...",
+    countdown: "Menghitung waktu...",
+    prayerInfo: "Memuat jadwal sholat...",
+    selectCountry: "Pilih Negara",
+    selectCity: "Pilih Kota",
+    updateManualBtn: "Perbarui Waktu Manual",
+    modalTitle: "Perbarui Jadwal Sholat",
+    manualUpdateBtn: "Perbarui Waktu Terpilih",
+    autoUpdateBtn: "Perbarui dengan Lokasi",
+    closeModalBtn: "Tutup",
+    locationDenied: "Akses lokasi ditolak",
+    locationUnavailable: "Lokasi tidak tersedia",
+    timeout: "Waktu habis",
+    connectionError: "Kesalahan koneksi",
+    prayerNow: "Waktunya sholat",
+    pleaseSelect: "Silakan pilih negara dan kota",
+    fajr: "Subuh",
+    dhuhr: "Dzuhur",
+    asr: "Ashar",
+    maghrib: "Maghrib",
+    isha: "Isya",
+    timeRemaining: "Waktu tersisa untuk",
+    prayerTimeAt: "Sholat {prayer} pukul {time}"
+  }
+};
+
+// === 2. دالة مساعدة للحصول على النص الحالي ===
+function getText(key = '') {
+  const lang = localStorage.getItem('alquran-lang') || 'ar';
+  return key ? prayerTexts[lang][key] : prayerTexts[lang];
+}
+
+// === 3. تحديث النصوص الثابتة عند تغيير اللغة ===
+function updatePrayerLanguage(lang = localStorage.getItem('alquran-lang') || 'ar') {
+  const t = getText();
+  document.getElementById('location').textContent = t.location;
+  document.getElementById('countdown').textContent = t.countdown;
+  document.getElementById('prayer-info').textContent = t.prayerInfo;
+  document.getElementById('selectCountry').textContent = t.selectCountry;
+  document.getElementById('selectCity').textContent = t.selectCity;
+  document.getElementById('updateManualBtn').textContent = t.updateManualBtn;
+  document.getElementById('modalTitle').textContent = t.modalTitle;
+  document.getElementById('manualUpdateBtn').textContent = t.manualUpdateBtn;
+  document.getElementById('autoUpdateBtn').textContent = t.autoUpdateBtn;
+  document.getElementById('closeModalBtn').textContent = t.closeModalBtn;
+}
+
+// === 4. الدوال المعدلة لتستخدم الترجمة ===
+function showError(error) {
+  const t = getText();
+  let message;
+  switch (error.code) {
+    case error.PERMISSION_DENIED: message = t.locationDenied; break;
+    case error.POSITION_UNAVAILABLE: message = t.locationUnavailable; break;
+    case error.TIMEOUT: message = t.timeout; break;
+    default: message = t.connectionError;
+  }
+  document.getElementById('location').textContent = message;
+  document.getElementById('countdown').textContent = t.connectionError;
+  document.getElementById('prayer-info').textContent = t.pleaseSelect;
+  toggleManualLocationForm();
+}
+
+async function getLocationName(latitude, longitude) {
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=14&addressdetails=1`);
+    const data = await response.json();
+    const city = data.address.city || data.address.town || data.address.village || '';
+    const state = data.address.state || '';
+    const country = data.address.country || '';
+    let locationParts = [];
+    if (city && !/^\d+$/.test(city)) locationParts.push(city);
+    if (state && !/^\d+$/.test(state) && state !== city) locationParts.push(state);
+    if (country && !/^\d+$/.test(country)) locationParts.push(country);
+    return locationParts.length > 0 ? locationParts.join('، ') : getText('location');
+  } catch {
+    return getText('location');
+  }
+}
+
+function startCountdown(times) {
+  const t = getText();
+  const now = new Date();
+  const prayerTimes = [
+    { name: t.fajr, time: times.Fajr },
+    { name: t.dhuhr, time: times.Dhuhr },
+    { name: t.asr, time: times.Asr },
+    { name: t.maghrib, time: times.Maghrib },
+    { name: t.isha, time: times.Isha }
+  ];
+
+  let nextPrayer, nextPrayerTime;
+  for (let i = 0; i < prayerTimes.length; i++) {
+    const [hours, minutes] = prayerTimes[i].time.split(':').map(Number);
+    const prayerDate = new Date(now);
+    prayerDate.setHours(hours, minutes, 0, 0);
+    if (prayerDate > now) {
+      nextPrayer = prayerTimes[i].name;
+      nextPrayerTime = prayerDate;
+      break;
+    }
+  }
+
+  if (!nextPrayer) {
+    const [hours, minutes] = times.Fajr.split(':').map(Number);
+    nextPrayerTime = new Date(now);
+    nextPrayerTime.setDate(now.getDate() + 1);
+    nextPrayerTime.setHours(hours, minutes, 0, 0);
+    nextPrayer = t.fajr;
+  }
+
+  const timeFormatted = nextPrayerTime.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: 'numeric', hour12: true });
+  document.getElementById('prayer-info').textContent = t.prayerTimeAt.replace('{prayer}', nextPrayer).replace('{time}', timeFormatted);
+  updateCountdown(nextPrayerTime, nextPrayer, t);
+  clearInterval(window.countdownInterval);
+  window.countdownInterval = setInterval(() => updateCountdown(nextPrayerTime, nextPrayer, t), 1000);
+}
+
+function updateCountdown(time, prayer, t = getText()) {
+  const now = new Date();
+  const diff = time - now;
+  if (diff <= 0) {
+    document.getElementById('countdown').textContent = `${t.prayerNow} ${prayer}!`;
+    clearInterval(window.countdownInterval);
+    return;
+  }
+  const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+  const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+  const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+  document.getElementById('countdown').textContent = `${t.timeRemaining} ${prayer}: ${hours}:${minutes}:${seconds}`;
+}
+
+// === 5. ربط الترجمة بتغيير اللغة ===
+const originalChangeLanguage = window.changeLanguage || function() {};
+window.changeLanguage = function(lang) {
+  originalChangeLanguage(lang);
+  updatePrayerLanguage(lang);
+};
+
+// === 6. تحديث الترجمة عند التحميل ===
+document.addEventListener('DOMContentLoaded', () => {
+  updatePrayerLanguage();
+});
+</script>
+</body>
+</html>
+<div></div>
+
+
+
+  
+<div></div>
+
+
+
+
+
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style type="text/css">
+* { user-select: none; margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+.poster { overflow-x: scroll; overflow-y: hidden; white-space: nowrap; margin: 3px; text-align: center; }
+.image-container { display: inline-block; margin: 5px; text-align: center; }
+.image-container img { display: block; margin: 0 auto; }
+.image-container p { font-size: 14px; margin-top: 5px; font-weight: bold; }</style>
+</head>
+<body dir="rtl">
+
+<!-- القائمة الثانية -->
+<div align="center" class="poster">
+    <div class="image-container">
+        <a href="go:7"><img src="https://i.imgur.com/uLq7W67.png" alt="Icon" height="75" width="75"></a>
+        <a href="go:7"><p id="text8">القرآن صوت</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:Qiblah"><img src="https://i.imgur.com/ayv5WUE.png" alt="Icon" height="75" width="60"></a>
+        <a href="go:Qiblah"><p id="text9">اتجاة القبلة</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:alsala"><img src="https://i.imgur.com/EvieAr3.png" alt="Icon" height="70" width="60"></a>
+        <a href="go:alsala"><p id="text10">مواقيت الصلاة</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:k"><img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752706956/20250717_020059_ogdxqe.png" alt="Icon" height="75" width="70"></a>
+        <a href="go:k"><p id="text11">قصص الأنبياء</p></a>
+    </div>
+    
+    <div class="image-container">
+        <a href="go:tpragg"><img src="https://i.imgur.com/QA1uQYo.png" alt="Icon" height="60" width="60"></a>
+        <a href="go:tpragg"><p id="text13">🍩 تبرع</p></a>
+</div>
+</div>
+      
+
+</a> 
+    
+  </body>
+</html>
+</body>
+</html>
+<style>
+        .custom-line {
+            border: none;
+            height: 2px; /* يمكنك تعديل سمك الخط */
+            background-color: #4f96cc;
+            margin: 0; /* تصفير المسافات حول الخط */
+        }
+    </style>
+<hr class="custom-line">
+</html>
+
+ <!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة الصورة</title>
+    <style>
+        * { 
+            user-select: none; 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            outline: none; 
+        }
+        .poster { 
+            overflow-x: scroll; 
+            overflow-y: hidden; 
+            white-space: nowrap; 
+            margin: 0; /* إزالة الهوامش الزائدة */
+            padding-top: 0;
+            text-align: center; 
+        }
+        .image-container { 
+            display: inline-block; 
+            margin: 2px; /* تقليل المسافات بين العناصر */
+            text-align: center; 
+        }
+        .image-container img { 
+            display: block; 
+            margin: 0 auto; 
+        }
+        .image-container p { 
+            font-size: 14px; 
+            margin-top: 1px; 
+            font-weight: bold; 
+        }
+        .main-image {
+            text-align: center;
+            margin-bottom: -10px; /* تقليل المسافة بين الصورة الكبيرة والرموز */
+        }
+        .main-image img {
+            w3dth: 330px; /* حجم الصورة الكبيرة */
+            height: 55px; /* للحفاظ على نسبة العرض إلى الارتفاع */
+            display: block;
+            margin-bottom: -20px; /* تقليل المسافة بين الصورة والرموز */
+        }
+    </style>
+</head>
+<body dir="rtl">
+    
+            <!DOCTYPE html>
+<html>
+<head>
+<style>
+  #menu33 {
+    font-weight: bold;    /* يجعل النص سميكًا */
+    
+    font-size: 17px;      /* يحدد حجم النص (يمكنك تغيير القيمة) */
+  }
+</style>
+</head>
+<body>
+
+<p id="menu33">.منصة الأضواء ✪</p>
+
+</body>
+</html>
+
+            
+        </div>
+</div>
+<div><div align="center" class="poster">
+
+    <div class="image-container">
+        <a href="go:vdk"><img src="https://i.imgur.com/rMd2kMC.png" alt="Icon" height="60" width="60"></a>
+        <a href="go:vdk"><p id="text14">مقاطع قرآنية</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:webneos"><img src="https://i.imgur.com/cVoW6cg.png" alt="Icon" height="60" width="65"></a>
+        <a href="go:webneos"><p id="text15">الموجز الإسلامي</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:Islamicpng"><img src="https://i.imgur.com/Mq48Ft3.png" alt="Icon" height="60" width="60"></a>
+        <a href="go:Islamicpng"><p id="text16">خلفيات إسلامية</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:rodeoQuran"><img src="https://i.imgur.com/M0fkaYK.png" alt="Icon" height="75" width="75"></a>
+        <a href="go:rodeoQuran"><p id="text17">إذاعات القرآن</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:live"><img src="https://i.imgur.com/Xv6if2S.png" alt="Icon" height="75" width="69"></a>
+        <a href="go:live"><p id="text18">البث المباشر</p></a>
+    </div>
+</div>
+
+</body>
+</html>
+</a> 
+    
+  </body>
+</html>
+<style>
+        .custom-line {
+            border: none;
+            height: 2px; /* يمكنك تعديل سمك الخط */
+            background-color: #4f96cc;
+            margin: 0; /* تصفير المسافات حول الخط */
+        }
+    </style>
+<hr class="custom-line">
+</html>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .custom-text {
+            font-size: 15px; /* حجم النص */
+            font-weight: bold; /* سمك الخط */
+            
+            text-align: right; /* النص في اتجاه اليمين */
+            padding-right: 10px; /* مسافة من الجنب */
+            margin-bottom: 1px; /* تقليل المسافة بين النص والكود السفلي */
+        }
+    </style>
+</head>
+<body>
+<p id="menu24">تم التثبيت بواسطة تطبيق Alquran 📌</p>
+    
+<style>
+        * {
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+            
+        }
+.verified-badge {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    align-self: flex-end;
+    margin-bottom: 2px; /* إضافة مسافة إضافية من الأسفل */
+}
+
+        #poster-container {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .tweet-box {
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 18px;
+            padding: 15px;
+            width: 340px;
+            min-height: 140px;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            gap: 3px; /* تقليل المسافة بين العناصر */
+        }
+
+        .user-name {
+            font-size: 14px; /* تقليل حجم الخط */
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .verified-badge {
+            width: 16px; /* تقليل حجم العلامة */
+            height: 16px; /* تقليل حجم العلامة */
+            cursor: pointer;
+            align-self: flex-end; /* جعل العلامة تنزل إلى الأسفل */
+        }
+
+        .tweet-content {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #ffffff;
+            white-space: normal;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+            hyphens: auto;
+            word-spacing: 2px;
+            height: 100%;
+        }
+
+        .time-label {
+            margin-left: 10px;
+            color: #8899a6;
+            font-size: 14px;
+        }
+
+        #poster-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        #poster-container::-webkit-scrollbar-thumb {
+            background-color: #8899a6;
+            border-radius: 4px;
+        }
+    </style>
+    <title>تغريدة يومية</title>
+</head>
+<body id="body-container">
+
+<!-- التغريدات -->
+<div id="poster-container">
+    <!-- تكرار التغريدات -->
+    <script>
+        function redirectToLink() {
+            window.location.href = "go:85858688";
+        }
+
+        const adiya = [
+    "اللهم يا واسع الرحمة، اجعل لنا من كل هم فرجاً، ومن كل ضيق مخرجاً.",
+    "اللهم أصلح حالنا، واغفر ذنوبنا، وبارك لنا في أعمارنا وأرزاقنا.",
+    "اللهم اجعلنا من الشاكرين لأنعمك، الثابتين على طاعتك.",
+    "اللهم اشفنا واشفِ كل مريض، وارحمنا برحمتك الواسعة.",
+    "اللهم احفظنا من كل سوء، واجعلنا من عبادك الصالحين.",
+    "اللهم إنا نسألك الهدى والتقى والعفاف والغنى.",
+    "اللهم يا مقلب القلوب ثبت قلبي على دينك.",
+    "اللهم آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار.",
+    "اللهم إني أعوذ بك من الهم والحزن، والعجز والكسل، والبخل والجبن، وضلع الدين وغلبة الرجال.",
+    "اللهم إني أعوذ بك من شر ما عملت ومن شر ما لم أعمل.",
+    "اللهم اغفر لي ذنبي كله، دقه وجله، وأوله وآخره، وعلانيته وسره.",
+    "اللهم ارزقني حبك وحب من يحبك وحب العمل الذي يقربني إلى حبك.",
+    "اللهم اجعل القرآن العظيم ربيع قلوبنا، ونور صدورنا، وجلاء أحزاننا، وذهاب همومنا.",
+    "اللهم يا حي يا قيوم برحمتك أستغيث، أصلح لي شأني كله، ولا تكلني إلى نفسي طرفة عين.",
+    "ربنا هب لنا من أزواجنا وذرياتنا قرة أعين واجعلنا للمتقين إماماً.",
+    "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.",
+    "اللهم بارك لنا في أوقاتنا، واجعلها معمورة بذكرك وطاعتك.",
+    "اللهم اجعلنا ممن يستمعون القول فيتبعون أحسنه.",
+    "اللهم إنا نسألك من خير ما سألك عبدك ونبيك محمد صلى الله عليه وسلم، ونعوذ بك من شر ما استعاذ بك منه عبدك ونبيك محمد صلى الله عليه وسلم.",
+    "اللهم اجعل نهاية أمرنا خيراً، وبلغنا ما يرضيك عنا.",
+
+    "سبحان الله وبحمده، سبحان الله العظيم.",
+    "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.",
+    "أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه.",
+    "اللهم صل وسلم وبارك على نبينا محمد.",
+    "لا حول ولا قوة إلا بالله.",
+    "سبحان الله والحمد لله ولا إله إلا الله والله أكبر.",
+    "حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.",
+    "يا حي يا قيوم برحمتك أستغيث.",
+    "رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً ورسولاً.",
+    "بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.",
+    "اللهم اجعلنا من أهل الجنة، وباعد بيننا وبين النار.",
+    "اللهم تقبل صلاتنا وصيامنا وقيامنا وسائر أعمالنا.",
+    "اللهم إنا نسألك العفو والعافية في الدنيا والآخرة.",
+    "اللهم اجعل قبورنا روضة من رياض الجنة ولا تجعلها حفرة من حفر النار.",
+    "اللهم اغفر لنا ولوالدينا ولجميع المسلمين والمسلمات الأحياء منهم والأموات.",
+    "اللهم اجعل خير أعمالنا خواتيمها، وخير أعمارنا أواخرها.",
+    "اللهم اجعلنا من الذين إذا أحسنوا استبشروا، وإذا أساءوا استغفروا.",
+    "اللهم إنا نسألك من فضلك ورحمتك، فإنه لا يملكها إلا أنت.",
+    "اللهم هيئ لنا من أمرنا رشداً.",
+    "اللهم إنا نسألك الثبات في الأمر، والعزيمة على الرشد.",
+    "اللهم إنا نسألك موجبات رحمتك، وعزائم مغفرتك، والسلامة من كل إثم، والغنيمة من كل بر، والفوز بالجنة، والنجاة من النار.",
+    "اللهم اجعل رزقنا حلالاً طيباً مباركاً فيه.",
+    "اللهم ألهمنا رشدنا، وأعذنا من شر أنفسنا.",
+    "اللهم اغفر لنا ما قدمنا وما أخرنا، وما أسررنا وما أعلنا، وما أنت أعلم به منا.",
+    "اللهم انصر الإسلام والمسلمين، وأعز دينك يا رب العالمين.",
+    "اللهم يا مصرف القلوب صرف قلوبنا على طاعتك.",
+    "اللهم اجعلنا من الصابرين عند البلاء، الشاكرين عند الرخاء.",
+    "الل اللهم إنا نسألك حسن الخاتمة.",
+    "اللهم أصلح لنا ذرياتنا، واجعلهم قرة أعين لنا.",
+    "اللهم قنا عذابك يوم تبعث عبادك.",
+    "اللهم إني أعوذ بك من زوال نعمتك، وتحول عافيتك، وفجاءة نقمتك، وجميع سخطك.",
+    "اللهم إنا نسألك عيشة هنية، وميتة سوية، ومردًا غير مخزٍ ولا فاضح.",
+    "اللهم جنبنا الفتن ما ظهر منها وما بطن.",
+    "اللهم إنا نسألك من الخير كله عاجله وآجله، ما علمنا منه وما لم نعلم، ونعوذ بك من الشر كله عاجله وآجله، ما علمنا منه وما لم نعلم.",
+    "اللهم ارزقنا الجنة بغير حساب ولا سابقة عذاب.",
+    "اللهم إني أعوذ بك من قلب لا يخشع، ومن دعاء لا يسمع، ومن نفس لا تشبع، ومن علم لا ينفع.",
+    "اللهم اجعلنا هداة مهتدين غير ضالين ولا مضلين.",
+    "اللهم اغفر لنا ولوالدينا ولمن له حق علينا.",
+    "اللهم أعنا على ذكرك وشكرك وحسن عبادتك.",
+    "اللهم اهدنا فيمن هديت، وعافنا فيمن عافيت، وتولنا فيمن توليت، وبارك لنا فيما أعطيت، وقنا واصرف عنا شر ما قضيت.",
+    "اللهم إني أسألك حب المساكين، وحب الصالحين، والرحمة بالمساكين.",
+    "اللهم إنا نعوذ بك من الشرك والرياء.",
+    "اللهم اجعلنا من التوابين المتطهرين.",
+    "اللهم إني أسألك خير المسألة، وخير الدعاء، وخير النجاح، وخير الثواب، وثبتني وثقل موازيني.",
+    "اللهم اجعلنا ممن يذكرك كثيراً ويشكرك كثيراً.",
+    "اللهم اجعلنا مباركين أينما كنا.",
+    "اللهم إنا نسألك الرضا بعد القضاء.",
+    "اللهم ارزقنا شفاعة نبينا محمد صلى الله عليه وسلم.",
+    "اللهم تجاوز عن سيئاتنا، وتقبل حسناتنا.",
+    "اللهم اجعل الحياة زيادة لنا في كل خير، واجعل الموت راحة لنا من كل شر.",
+    "اللهم آمن روعاتنا، واستر عوراتنا.",
+    "اللهم اجعل لنا نوراً من فوقنا، ونوراً من تحتنا، ونوراً عن يميننا، ونوراً عن شمالنا، ونوراً من أمامنا، ونوراً من خلفنا، واجعل لنا نوراً.",
+    "اللهم طهر قلوبنا، وحصن فروجنا، وبارك لنا في أسمائنا وأبصارنا وقواتنا ما أحييتنا.",
+    "اللهم اجعلنا ممن يتلذذون بالنظر إلى وجهك الكريم.",
+    "اللهم إنا نسألك لذة النظر إلى وجهك، والشوق إلى لقائك، في غير ضراء مضرة، ولا فتنة مضلة.",
+    "اللهم ارزقنا قلباً سليماً، ولساناً ذاكراً، وعملاً صالحاً.",
+    "اللهم إنا نعوذ بك من يوم السوء، ومن ليلة السوء، ومن ساعة السوء، ومن صاحب السوء، ومن جار السوء في دار المقامة.",
+    "اللهم إني ظلمت نفسي ظلماً كثيراً، ولا يغفر الذنوب إلا أنت، فاغفر لي مغفرة من عندك، وارحمني، إنك أنت الغفور الرحيم.",
+    "اللهم اجعلنا من البارين بوالدينا، الواصلين لأرحامنا.",
+    "اللهم يا فالق الحب والنوى، يا بارئ النسم والورى، ارزقنا من فضلك يا خير الرازقين.",
+    "اللهم اجعلنا مفاتيح للخير مغاليق للشر.",
+    "اللهم زدنا ولا تنقصنا، وأعطنا ولا تحرمنا، وأكرمنا ولا تهنا، وآثرنا ولا تؤثر علينا، وارضنا وارض عنا.",
+    "اللهم اجعلنا من أهل الفردوس الأعلى.",
+    "الل اللهم أدم علينا نعمك، وألبسنا حلل كرمك.",
+    "اللهم إنا نسألك دوام العافية، وحسن الخاتمة.",
+    "اللهم يا ذا الجلال والإكرام، أكرمنا بالعلم النافع، والعمل الصالح.",
+    "اللهم احشرنا مع الأنبياء والصديقين والشهداء والصالحين.",
+    "اللهم ارزقنا قلوباً خاشعة، وألسنة ذاكرة.",
+    "اللهم اجعل لنا من لدنك سلطاناً نصيراً.",
+    "اللهم بارك لنا فيما أعطيتنا، وقنا شر ما قضيت.",
+    "اللهم ألف بين قلوبنا، وأصلح ذات بيننا، واهدنا سبل السلام.",
+    "اللهم اغفر لحينا وميتنا، وشاهدنا وغائبنا، وصغيرنا وكبيرنا، وذكرنا وأنثانا.",
+    "اللهم إني أسألك الهدى والتقى والعفاف والغنى.",
+    "اللهم إنا نسألك من فجاءة الخير، ونعوذ بك من فجاءة الشر.",
+    "اللهم ارزقنا رزقاً حلالاً طيباً واسعاً غير مردود.",
+    "اللهم اجعلنا من القائمين بحقك، الثابتين على أمرك.",
+    "اللهم اجعل لنا نصيباً من رحمتك الواسعة.",
+    "اللهم إنا نعوذ بك من الشقاق والنفاق وسوء الأخلاق.",
+    "اللهم اجعل أعمالنا كلها صالحة، ولوجهك خالصة، ولا تجعل لأحد فيها شيئاً.",
+    "اللهم زدنا إيماناً ويقيناً وتسليماً.",
+    "اللهم اجعلنا من الذين إذا ذكروا الله وجلت قلوبهم.",
+    "اللهم اجعل خير عمري آخره، وخير عملي خواتمه، وخير أيامي يوم ألقاك.",
+    "اللهم إني أسألك رحمة من عندك تهدي بها قلبي، وتجمع بها شملي، وتلم بها شعثي، وتصلح بها غائبي، وترفع بها شاهدي، وتزكي بها عملي، وتلهمني بها رشدي، وترد بها ألفتي، وتعصمني بها من كل سوء.",
+    "اللهم يا من بيده ملكوت كل شيء، أعزنا ولا تذلنا.",
+    "اللهم إنا نسألك فعل الخيرات، وترك المنكرات، وحب المساكين.",
+    "اللهم إني أسألك الفوز بالجنة، والنجاة من النار.",
+    "اللهم إني أعوذ بك من جهد البلاء، ودرك الشقاء، وسوء القضاء، وشماتة الأعداء.",
+    "اللهم افتح لنا أبواب رحمتك، وأبواب مغفرتك، وأبواب رزقك.",
+    "اللهم اجعلنا ممن يقيم الصلاة ويؤتي الزكاة ويخشاك حق خشيتك.",
+    "اللهم اجعل أعمالنا خالصة لوجهك الكريم.",
+    "اللهم اجعلنا من الذاكرين الشاكرين القانتين المخبتين المنيبين.",
+    "اللهم إني أعوذ بك من شر السمع، ومن شر البصر، ومن شر اللسان، ومن شر القلب، ومن شر المني.",
+    "اللهم إنا نسألك من كل خير خزانته بيدك، ونعوذ بك من كل شر خزانته بيدك.",
+    "اللهم اجعل لنا نوراً في قلوبنا، ونوراً في قبورنا، ونوراً في أبصارنا، ونوراً في أسماعنا.",
+    "اللهم ارزقنا حسن الظن بك، وصدق التوكل عليك.",
+    "اللهم إنا نسألك صلاح الحال، وراحة البال، والستر والعافية.",
+    "اللهم قنا شر أنفسنا، وسيئات أعمالنا.",
+    "اللهم اجعل ألسنتنا عامرة بذكرك، وقلوبنا بخشيتك، وأسرارنا بطاعتك.",
+    "اللهم ارزقنا الإخلاص في القول والعمل.",
+    "اللهم يا كاشف الغم، يا فارج الهم، يا مجيب دعوة المضطرين، ارحمنا برحمتك.",
+    // استكمال الأدعية والأذكار:
+    "اللهم اجعلنا من الذين يوفون بعهدك، ويصدقون بوعدك.",
+    "اللهم اغفر لنا ما كان وما سيكون، وما أسررنا وما أعلنا.",
+    "اللهم ارزقنا سعادة الدارين، الدنيا والآخرة.",
+    "اللهم اجعلنا من المستغفرين بالأسحار.",
+    "اللهم اهدنا صراطك المستقيم، صراط الذين أنعمت عليهم غير المغضوب عليهم ولا الضالين.",
+    "اللهم ارزقنا الثبات عند السؤال، والنجاة يوم الفزع الأكبر.",
+    "اللهم إنا نعوذ بك من عذاب جهنم، ومن عذاب القبر، ومن فتنة المحيا والممات، ومن فتنة المسيح الدجال.",
+    "اللهم اجعلنا من الصديقين والشهداء والصالحين.",
+    "اللهم إني أسألك العافية في بدني، العافية في سمعي، العافية في بصري، لا إله إلا أنت.",
+    "اللهم إني أسألك من فجاءة الخير، وأعوذ بك من فجاءة الشر.",
+    "اللهم ارحمنا برحمتك التي وسعت كل شيء.",
+    "اللهم اجعل لنا نوراً نمشي به في الناس.",
+    "اللهم اجعلنا من مقيمي الصلاة، ومن ذرياتنا.",
+    "اللهم يا جامع الناس ليوم لا ريب فيه اجمعني بحاجتي.",
+    "اللهم إني أسألك الرضا بالقضاء، وبرد العيش بعد الموت.",
+    "اللهم ارزقنا قلوباً نقية، وأعمالاً زاكية.",
+    "اللهم اجعلنا من الذاكرين الشاكرين، القائمين بالصلاة والصيام.",
+    "اللهم اجعلنا ممن توكل عليك فكفيته، واستعان بك فأعنته.",
+    "اللهم إنا نعوذ بك من الفقر إلا إليك، ومن الذل إلا لك، ومن الخوف إلا منك.",
+    "اللهم اجعلنا من الذين يخشونك كأنهم يرونك.",
+    "اللهم يا وهاب، هب لنا من لدنك رحمة.",
+    "اللهم يا رزاق، ارزقنا رزقاً طيباً مباركاً فيه.",
+    "اللهم يا فتاح، افتح لنا أبواب الخير كلها.",
+    "اللهم يا غفور، اغفر لنا ذنوبنا كلها.",
+    "اللهم يا رحيم، ارحمنا برحمتك الواسعة.",
+    "اللهم يا ودود، ألف بين قلوبنا على طاعتك.",
+    "اللهم يا حليم، تجاوز عن زلاتنا.",
+    "اللهم يا عفو، اعف عنا واغفر لنا.",
+    "اللهم يا سميع، استجب لدعواتنا.",
+    "اللهم يا بصير، اجعلنا نرى الحق حقاً ونتبعه، والباطل باطلاً ونجتنبه.",
+    "اللهم اجعلنا من أهل الحق، ومن أنصار الحق.",
+    "اللهم اجعلنا من السعداء في الدنيا والآخرة.",
+    "اللهم إنا نسألك خير هذا اليوم، وخير ما بعده.",
+    "اللهم إنا نعوذ بك من شر هذا اليوم، وشر ما بعده.",
+    "اللهم ارزقنا الثبات على دينك حتى نلقاك.",
+    "اللهم اجعلنا من أهل القرآن وخاصته.",
+    "اللهم اجعل قبورنا روضة من رياض الجنة.",
+    "اللهم ارفع درجاتنا في الجنة.",
+    "اللهم إنا نسألك الأمن يوم الخوف.",
+    "اللهم ارزقنا شفاعة نبينا محمد صلى الله عليه وسلم.",
+    "اللهم اجعلنا ممن يحسنون الظن بك.",
+    "اللهم يا ولي الإسلام وأهله، ثبتنا على الإسلام حتى نلقاك.",
+    "اللهم لا تكلنا إلى أنفسنا طرفة عين.",
+    "اللهم اكتب لنا الخير حيث كان ثم أرضنا به.",
+    "اللهم اجعلنا من الذين يطيعونك ولا يعصونك.",
+    "اللهم اجعلنا من المفلحين الفائزين.",
+    "اللهم إنا نسألك الرشاد في أمورنا كلها.",
+    "اللهم اجعل القرآن لنا نوراً وهدى.",
+    "اللهم ارزقنا حسن السمعة وطيب الذكر.",
+    "اللهم اجعل لنا دعوة مستجابة لا تردها.",
+    "اللهم اجعل لنا بصيرة في ديننا.",
+    "اللهم ارزقنا صدق النية في كل أعمالنا.",
+    "اللهم اجعلنا من الذين يأتمرون بأمرك وينتهون بنهيك.",
+    "اللهم ارزقنا حلاوة الإيمان وطعم الإحسان.",
+    "اللهم اجعلنا من البكائين من خشيتك.",
+    "اللهم اهدنا لأحسن الأخلاق لا يهدي لأحسنها إلا أنت.",
+    "اللهم اجعل خير زادنا التقوى.",
+    "اللهم ارحمنا إذا صرنا إلى ما صاروا إليه.",
+    "اللهم ارزقنا حسن الخلق وسعة الرزق.",
+    "اللهم اجعلنا من الذين يصدقون في أقوالهم وأفعالهم.",
+    "اللهم ارفع عنا البلاء والوباء.",
+    "اللهم اجعلنا من الأوابين المنيبين.",
+    "اللهم ارزقنا اليقين التام بك.",
+    "اللهم اجعلنا من الطائعين لك في كل حال.",
+    "اللهم اجعلنا من الصائمين القائمين.",
+    "اللهم ارزقنا قلوباً سليمة من الشرك والضغينة.",
+    "اللهم اهدنا ويسر الهدى لنا.",
+    "اللهم اجعلنا من المبشرين بالجنة.",
+    "اللهم لا تزغ قلوبنا بعد إذ هديتنا.",
+    "اللهم هب لنا من لدنك رحمة، إنك أنت الوهاب.",
+    "اللهم اجعلنا من الصابرين على أقدارك.",
+    "اللهم ارزقنا العلم النافع الذي يقربنا إليك.",
+    "الل اللهم اجعلنا من الذين إذا ذكروا الله اهتدوا.",
+    "اللهم بارك لنا في أزواجنا وذرياتنا.",
+    "اللهم اجعلنا من الذين يستغفرونك كثيراً.",
+    "اللهم ارزقنا شكر نعمك، وحسن عبادتك.",
+    "اللهم اجعلنا من الذين يتبعون هدي نبيك.",
+    "اللهم ارزقنا قلوباً مطمئنة بذكرك.",
+    "اللهم اجعلنا من الذين يطيعونك في السراء والضراء.",
+    "اللهم اختم بالصالحات أعمالنا، واجعل خير أعمارنا أواخرها، وخير أيامنا يوم نلقاك."
+        ];
+
+        function getRandomAdiya(count) {
+            const shuffled = [...adiya].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function splitIntoTwoLines(text) {
+            const words = text.split(" ");
+            const middleIndex = Math.ceil(words.length / 2);
+            return `${words.slice(0, middleIndex).join(" ")}<br>${words.slice(middleIndex).join(" ")}`;
+        }
+
+        function generateTweets() {
+            const tweetContainer = document.getElementById("poster-container");
+            const randomAdiya = getRandomAdiya(5);
+
+            for (let i = 1; i <= 5; i++) {
+                const tweetBox = document.createElement("div");
+                tweetBox.classList.add("tweet-box");
+                tweetBox.id = `tweet-container-${i}`;
+
+                tweetBox.innerHTML = `
+                    <div class="header-box">
+                        <img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1742967807/JbSJq1b_1_x3liux.png" alt="logo" class="logo-img" onclick="redirectToLink()">
+                        <div class="user-info">
+                            <div class="user-name" onclick="redirectToLink()">Alquran App</div>
+                            <img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752119047/20250710_064326_xtnmlp.png" alt="verified" class="verified-badge" onclick="redirectToLink()">
+                        </div>
+                        <div class="time-label" id="time-elapsed-${i}">الآن</div>
+                    </div>
+                    <div class="tweet-content" id="dua-container-${i}">${splitIntoTwoLines(randomAdiya[i - 1])}</div>
+                `;
+
+                tweetContainer.appendChild(tweetBox);
+            }
+        }
+
+        const postTimes = Array.from({ length: 5 }, () => new Date(Date.now() - Math.floor(Math.random() * (24 * 60 * 60 * 1000))));
+
+        function updateTimeElapsed() {
+            const now = new Date();
+            for (let i = 1; i <= 5; i++) {
+                const postTime = postTimes[i - 1];
+                const diff = now - postTime;
+
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                let timeText = "";
+                if (hours > 0) {
+                    timeText = `منذ ${hours} ${hours === 1 ? "ساعة" : "ساعات"}`;
+                } else if (minutes > 0) {
+                    timeText = `منذ ${minutes} ${minutes === 1 ? "دقيقة" : "دقائق"}`;
+                } else {
+                    timeText = `منذ ${seconds} ${seconds === 1 ? "ثانية" : "ثوانٍ"}`;
+                }
+
+                document.getElementById(`time-elapsed-${i}`).textContent = timeText;
+            }
+        }
+
+        generateTweets();
+        updateTimeElapsed();
+        setInterval(updateTimeElapsed, 1000);
+        setInterval(() => {
+            document.getElementById("poster-container").innerHTML = "";
+            generateTweets();
+        }, 1000 * 60 * 60 * 24);
+    </script>
+</div>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التبرع والمساعدة</title>
+    <style>
+         {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0
+            padding: 0;
+        }
+        .banner-container {
+            width: 100%;
+            border-top: 3px solid #4F96CC; /* تغيير اللون هنا (أحمر كمثال) */
+            border-bottom: 3px solid #4F96CC; /* تغيير اللون هنا (أحمر كمثال) */
+            padding: 5px 0;
+            box-sizing: border-box;
+        }
+        .banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 90%; /* عرض تلقائي يتكيف مع حجم الشاشة */
+            min-width: 250px; /* عرض أدنى للحفاظ على التنسيق على الشاشات الصغيرة */
+            margin: 0 auto; /* توسيط المحتوى */
+        }
+        .banner img {
+            height: 30px;
+        }
+        .banner .donate-text {
+            font-weight: bold;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner-container">
+        <div class="banner">
+            <img src="https://i.imgur.com/Wf4jL0R.png" alt="Donation photos">
+            <p id="menu25"><span class="donate-text">للتبرع والمساعدة</span>
+        </div>
+    </div>
+</body>
+</html>
+</a> 
+    
+  </body>
+</html>
+</div></div>
+
+
+
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+    <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css" />
+  
+  <style media="screen">
+  .carousel-cell {
+    width: 100%;
+    }
+
+    /* cell number */
+    .carousel-cell:before {
+      display: block;
+    }
+  </style>
+  
+    
+    <div class="carousel" data-flickity='{ "wrapAround": true, "autoPlay": true, "imagesLoaded":true }'>
+      
+
+  
+</header>
+<div class="mySlides fade">
+  <div class="numbertext"></div>
+<a href="go:tpragg"><img style="width:100%" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1749194338/%D9%A2%D9%A0%D9%A2%D9%A5%D9%A0%D9%A6%D9%A0%D9%A6_%D9%A1%D9%A0%D9%A1%D9%A5%D9%A4%D9%A9_ut6nwz.png" alt="Donation Image 1"></a>
+  </div>
+  
+
+</header>
+<div class="mySlides fade">
+  <div class="numbertext"></div>
+<a href="go:tpragg"><img style="width:100%" src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1749195034/2025_06_06_1428432843_gmf4xs.jpg" alt="Donation Image 2"></a>
+  </div>
+      </header>
+<div class="mySlides fade">
+  <div class="numbertext"></div>
+<a href="go:tpragg"><img style="width:100%" src="https://i.imgur.com/DR2UykW.png" alt="Donation Image 3"></a>
+  </div>
+
+</header>
+<div class="mySlides fade">
+  <div class="numbertext"></div>
+<a href="go:tpragg"><img style="width:100%" src="https://i.imgur.com/JJ97p3H.png" alt="Donation Image 4"></a>
+  </div>
+
+
+
+</header>
+<div class="mySlides fade">
+  <div class="numbertext"></div>
+<a href="go:tpragg"><img style="width:100%" src="https://i.imgur.com/oFMtiCm.png" alt="Donation Image 5"></a>
+  </div>
+    
+
+
+
+    </div>
+
+
+
+
+
+
+    
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+ <br/> 
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مقاطع قرآنية</title>
+    <style>
+        body {
+            
+        }
+        .container {
+            padding: 10px; /* إضافة مسافة داخلية حول الحاوية */
+            
+            
+            
+        }
+        .title {
+            display: flex;
+            align-items: center;
+        }
+        .icon {
+            width: 27px;
+            height: 27px;
+            margin-right: 5px; /* وضع مسافة بين الشعار والنص */
+            background-image: url('https://i.imgur.com/y03cHWB.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .text h2 {
+            font-size: 17px;
+            margin: 0;
+            
+            font-weight: bold; /* جعل النص عريض */
+        }
+        .title p {
+            font-weight: bold; /* جعل النص عريض */
+            margin-right: 5px; /* إضافة مسافة من اليمين */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <p id="menu26">مقاطع قرآنية</p>
+            <div class="icon"></div>
+        </div>
+        <script src="https://kit.fontawesome.com/2b7b2389d3.js"></script>
+    <p id="menu27">المقاطع الأشهر مشاهدة <i class="fas fa-chart-bar"></i></strong></p>
+    </div>
+</body>
+</html>
+<!DOCTYPE html>
+<body dir="rtl">
+<html lang="es">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style type="text/css">
+*{user-select:none;margin:0;padding:0;box-sizing:border-box;outline:none;user-select:none;}
+div .poster{overflow-x:scroll;overflow-y:hidden;white-space:nowrap;margin:3px;}
+</style>
+
+</div></div>
+<!--Slider-->
+
+<div><div align="center" class="poster">
+
+</div></div>
+<div><div align="center" class="poster">
+<a href="go:618188"><img src="https://i.imgur.com/IoAZRhq.png" alt="Image" height="165" width="95"></a>
+    <a href="go:vdk"><img src="https://i.imgur.com/TQko63k.png" alt="Image" height="165" width="95"></a>
+    <a href="go:vdk"><img src="https://i.imgur.com/H0rIiak.png" alt="Image" height="165" width="95"></a>
+    <a href="go:vdk"><img src="https://i.imgur.com/5CTDzko.png" alt="Image" height="165" width="95"></a>
+    <a href="go:vdk"><img src="https://i.imgur.com/IQOxqpv.png" alt="Image" height="165" width="95"></a>
+</div></div>
+<!DOCTYPE html>
+
+
+<html>
+  <head>
+    
+  <style>
+div.a {
+    text-align: center;
+}
+
+div.a p2 {
+    font-size: 19px; /* يمكنك تعديل القيمة حسب الحجم المطلوب */
+    font-weight: bold; /* إضافة تظليل إن أردت النص غامقاً */
+}
+</style>
+
+<div class="a">
+   <a href="go:vdk"><p id="menu28">📖 عرض المزيد</p>
+</div>
+</a> 
+    
+  </body>
+</html>
+    
+    
+  </style>
+  <body>
+  </div></div>
+     </style>
+  <body>
+  </div></div>
+  <br/>
+<style>
+div.a {
+    text-align: center;
+}
+
+div.a p2 {
+    font-size: 12px; /* يمكنك تعديل القيمة حسب الحجم المطلوب */
+    font-weight: bold; /* إضافة تظليل إن أردت النص غامقاً */
+}
+</style>
+
+<div class="a">
+   <p id="menu29"> <p2>البث المباشر للقنوات الإسلامية Live <i class="fa-solid fa-circle" style="color: #ff0000; margin-right: 0px; font-size: 16px;"></i></p2>
+</div>
+</div></div>
+
+
+
+</div></div>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style type="text/css">
+* { user-select: none; margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+.poster { overflow-x: scroll; overflow-y: hidden; white-space: nowrap; margin: 3px; text-align: center; }
+.image-container { display: inline-block; margin: 5px; text-align: center; }
+.image-container img { display: block; margin: 0 auto; }
+.image-container p { font-size: 14px; margin-top: 5px; font-weight: bold; }</style>
+</head>
+<body dir="rtl">
+
+<!-- قنوات البث المباشر -->
+<div align="center" class="poster">
+    <div class="image-container">
+        <a href="go:ggggff"><img src="https://i.imgur.com/IbaPzfc.png" alt="Channel" height="100" width="93"></a>
+        <a href="go:ggggff"><p id="text19">قناة القران لايف</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:almajdk"><img src="https://i.imgur.com/hO5hg5u.png" alt="Channel" height="100" width="93"></a>
+        <a href="go:almajdk"><p id="text20">قناة السنة لايف</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:685555"><img src="https://i.imgur.com/lx6ECVy.png" alt="Channel" height="100" width="93"></a>
+        <a href="go:685555"><p id="text21">قناة المجد لايف</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:6454557"><img src="https://i.imgur.com/rhLdTPi.png" alt="Channel" height="100" width="93"></a>
+        <a href="go:6454557"><p id="text22">قناة إقرأ لايف</p></a>
+    </div>
+    <div class="image-container">
+        <a href="go:3494684"><img src="https://i.imgur.com/M2JXrc5.png" alt="Channel" height="100" width="93"></a>
+        <a href="go:3494684"><p id="text23">قناة صاد لايف</p></a>
+    </div>
+        
+</div>
+
+</body>
+</html>
+    <!DOCTYPE html>
+
+
+<html>
+  <head>
+    
+<style>
+div.a {
+    text-align: center;
+}
+
+div.a p2 {
+    font-size: 17px; /* يمكنك تعديل القيمة حسب الحجم المطلوب */
+    font-weight: bold; /* إضافة تظليل إن أردت النص غامقاً */
+}
+</style>
+
+<div class="a">
+      <a href="go:live"> <p id="menu30">عرض المزيد Live<i class="fa-solid fa-circle" style="color: #ff0000; margin-right: 3px; font-size: 16px;"></i></p2>
+</div>
+</a> 
+    
+  </body>
+<br />
+    <br />
+
+<body dir="rtl">
+<script language="JavaScript">
+<!--
+//Disable right click script III- By Renigade (renigade@mediaone.net) //Disable select-text script (IE4+, NS6+)- By Andy Scott //Visit http://hashem-earn-from-internet.blogspot.com/ 
+var message=""; 
+function clickIE() {
+if (document.all) {
+(message);return false;
+}
+} function clickNS(e) { 
+if (document.layers||(document.getElementById&&!document.all)) { 
+if (e.which==2||e.which==3) { (message); return false;
+} } } if (document.layers) { document.captureEvents(Event.MOUSEDOWN); 
+document.onmousedown=clickNS;
+} else { document.onmouseup=clickNS;
+document.oncontextmenu=clickIE; 
+} document.oncontextmenu=new Function("return false")
+function disableselect(e) { return false } function reEnable() { return true } 
+document.onselectstart=new Function ("return false") //if NS6 if (window.sidebar){ document.onmousedown=disableselect document.onclick=reEnable } //
+//-->
+</script>
+  
+  <script type='text/القران الكريم'> 
+function nocontext(e) {var clickedTag = (e==null) ? event.srcElement.tagName : e.target.tagName; if (clickedTag == "IMG") {alert(alertMsg);return false;}} var alertMsg = "ممنوع تحميل الصورة";document.oncontextmenu = nocontext; 
+  </script>
+  
+  
+  <style type='text/css'>
+@keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}to{opacity:1;-webkit-transform:translateZ(0);transform:translateZ(0)}}
+#AntiAdblockcnmu{background:rgba(0,0,0,.7);position:fixed;margin:auto;right:0;top:0;overflow:auto;z-index:999999;width:100%;height:100%}
+#OutBlock{background:#fff;color:#fff;box-shadow:0 2px 4px #000;text-align:center;width:600px;padding:5px;border-radius:5px;animation:fadeInDown 1s;top:20%;position:absolute;right:calc(50% - 300px)}
+#INablcok{background-color:#f1f1f1;border-radius:5px;color:#000}
+#HeadBlock{background-color:#446EAC;border-radius:5px 5px 0 0;padding:12px 10px;color:#fff}
+#BlockContent {padding: 20px 10px 20px 120px;background: transparent url(https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752425268/20250713_194714_gjdbic.png) no-repeat 10px 20px /100px 100px;min-height: 140px;box-sizing: border-box;}
+#Blockclick{height:40px;background-color:#444;border-radius:0 0 5px 5px;overflow:hidden}
+#Blockclick a{display:block;height:inherit;line-height:40px;border-radius:2px;color:#fff;width:50%;float:right;cursor:pointer;text-align:center;overflow:hidden}
+#Bclik1{background-color:rgba(0,0,0,.3)}
+#Blockclick a:hover{background-color:#b5120b}
+@media screen and (max-width : 650px) {
+#OutBlock {width: 340px;right: calc(50% - 170px);}
+#BlockContent {padding: 130px 10px 20px 10px;background-position: center 20px;}
+}
+@media screen and (max-width : 360px) {
+#OutBlock {width: 280px;right: calc(50% - 140px);}
+}
+@media screen and (max-width : 300px) {
+#OutBlock {width: 240px;right: calc(50% - 120px);}
+}
+</style>
+<script type='text/javascript'>
+//<<![CDATA[
+// ✅ حل بديل باستخدام sessionStorage أو cookies إذا localStorage لا يعمل في WebView
+function setStorage(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch(e) {
+        try {
+            sessionStorage.setItem(key, value);
+            return true;
+        } catch(e2) {
+            // حل أخير: استخدام cookie
+            document.cookie = key + "=" + encodeURIComponent(value) + "; path=/; max-age=3600";
+            return true;
+        }
+    }
+}
+
+function getStorage(key) {
+    try {
+        var val = localStorage.getItem(key);
+        if(val) return val;
+    } catch(e) {}
+    try {
+        var val2 = sessionStorage.getItem(key);
+        if(val2) return val2;
+    } catch(e2) {}
+    // البحث في cookies
+    var match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
+    if(match) return decodeURIComponent(match[2]);
+    return null;
+}
+
+function removeStorage(key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+    try { sessionStorage.removeItem(key); } catch(e) {}
+    document.cookie = key + "=; path=/; max-age=0";
+}
+
+// جعل الدالة في النطاق العام
+window.showExceptionDialog = function() {
+    var code = prompt("الرجاء إدخال كود الاستثناء:");
+    if(code === '05564582525') {
+        setStorage('adblockExceptionCode', code);
+        setStorage('redirectAfterException', 'https://zakidev.shop/ads');
+        alert("تم تفعيل الاستثناء بنجاح!");
+        
+        // ✅ في WebView، لا نستخدم reload، بل نستخدم redirect مباشرة
+        window.location.href = 'https://zakidev.shop/ads';
+        return false;
+    } else if(code !== null) {
+        alert("كود الاستثناء غير صحيح!");
+    }
+    return false;
+};
+
+!function(){
+    // ✅ التحقق أولاً من الرابط المخزن
+    var redirectUrl = getStorage('redirectAfterException');
+    if(redirectUrl) {
+        removeStorage('redirectAfterException');
+        window.location.href = redirectUrl;
+        return;
+    }
+
+    // التحقق من كود الاستثناء
+    var exceptionCode = getStorage('adblockExceptionCode');
+    if(exceptionCode === '05564582525') {
+        return;
+    }
+
+    function f(){
+        var a = document.createElement("div");
+        a.id = "AntiAdblockcnmu";
+        a.innerHTML = `
+        <div id="OutBlock">
+            <div id="INablcok">
+                <div id="HeadBlock">تم رصد مانع الإعلانات</div>
+                <div id="BlockContent">برجاء ايقاف مانع الاعلانات إذا أردت إزالة الاعلانات من التطبيق يمكنك الاشتراك ب 5 جنيه مصري كل شهر لإزالة الاعلانات او الدفع مرة واحدة لإزالة الاعلانات</div>
+                <div id="Blockclick">
+                    <a class="block-btn" href="http://action_exit" target="_blank">إعادة تشغيل التطبيق</a>
+                    <a class="block-btn" href="go:90843755" target="_blank">ازالة الاعلانات</a>
+                    <a class="block-btn" href="https://zakidev.shop/ads" onclick="return showExceptionDialog();">استثناء ✨</a>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        var style = document.createElement('style');
+        style.textContent = `
+            #AntiAdblockcnmu {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                z-index: 999999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #OutBlock {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                max-width: 500px;
+                text-align: center;
+            }
+            #HeadBlock {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #d9534f;
+            }
+            #BlockContent {
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+            #Blockclick {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.append(a);
+        document.body.style.overflow = "hidden";
+    }
+
+    var b = document.createElement("script");
+    b.type = "text/javascript";
+    b.async = !0;
+    b.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+    b.onerror = function(){
+        f();
+        window.adblock = !0;
+    };
+    var e = document.getElementsByTagName("script")[0];
+    e.parentNode.insertBefore(b, e);
+}();
+
+function refreshPage(){
+    window.location.reload();
+}
+//]]>
+</script>
+    
+
+<body dir="rtl">
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>صفحة مع قائمة سفلية متحركة</title>
+    <style>
+           :root {
+  --footer-border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --footer-border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="blue"] {
+  --footer-border-color: rgba(255, 255, 255, 0.2);
+}
+
+footer {
+    background-color: var(--top-bar-bg);
+    display: flex;
+    justify-content: space-around;
+    padding: 7px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 100;
+    border-top: 1px solid var(--footer-border-color);
+    box-shadow: none;
+    transition: transform 0.3s ease-in-out;
+}
+
+        footer.hidden {
+            transform: translateY(100%);
+        }
+
+        footer div {
+            position: relative; /* لتتمكن التموجات من الظهور داخل العنصر */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        footer div img {
+            height: 34px;
+            width: 34px;
+            transition: transform 0.2s ease; /* لتأثير التصغير */
+        }
+
+        /* تأثير التموج */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to { transform: scale(2); opacity: 0; } /* التوسع إلى ضعف الحجم */
+        }
+
+        /* تأثير التصغير عند النقر */
+        footer div img:active {
+            transform: scale(0.95); /* تصغير الصورة قليلاً عند النقر */
+        }
+
+        /* تنسيق النافذة المنبثقة */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<!-- القائمة السفلية -->
+<footer id="foot">
+    <div id="home">
+        <a href="#">
+            <img id="home-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1756343801/ConvertedWebP0_qyrdwj.webp"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1756343801/ConvertedWebP0_qyrdwj.webp"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1756343801/ConvertedWebP0_qyrdwj.webp"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1756343801/ConvertedWebP0_qyrdwj.webp" alt="Home Icon">
+        </a>
+    </div>
+    <div id="quran-audio">
+        <a href="go:mos">
+            <img id="quran-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530232/ConvertedWebP12_psjxim.webp"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530118/ConvertedWebP7_nacuio.webp"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530118/ConvertedWebP7_nacuio.webp"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530118/ConvertedWebP7_nacuio.webp" alt="Holy Quran icon">
+        </a>
+    </div>
+    <div id="video-quran">
+        <a href="go:vdk">
+            <img id="video-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530232/ConvertedWebP3_hdz43k.webp"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530109/ConvertedWebP10_e9esau.webp"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530109/ConvertedWebP10_e9esau.webp"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530109/ConvertedWebP10_e9esau.webp" alt="Clips Quran icon ">
+        </a>
+    </div>
+    <div id="grok">
+        <a href="go:grok">
+            <img id="grok-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1740017246/eJSGWIz_yo9ziy.png"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752486683/20250714_125044_ev1znc.png"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752486683/20250714_125044_ev1znc.png"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752486683/20250714_125044_ev1znc.png" alt="Zynor Al icon">
+        </a>
+    </div>
+    <div id="prayer-times">
+        <a href="go:alsala">
+            <img id="prayer-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530233/ConvertedWebP4_z6azak.webp"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530108/ConvertedWebP0_a36iqh.webp"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530108/ConvertedWebP0_a36iqh.webp"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530108/ConvertedWebP0_a36iqh.webp" alt="Prayer times icon">
+        </a>
+    </div>
+    <div id="account">
+        <a href="go:hfgghh">
+            <img id="account-icon"
+                 data-light="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739310353/sCq53dG_5_quhcn3.png"
+                 data-dark="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530112/ConvertedWebP12_y05y2c.webp"
+                 data-blue="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530112/ConvertedWebP12_y05y2c.webp"
+                 src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530112/ConvertedWebP12_y05y2c.webp" alt="My account icon">
+        </a>
+    </div>
+</footer>
+
+<!-- النافذة المنبثقة للتخصيص -->
+<div class="modal" id="customizeModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">✖</span>
+        <h3>تخصيص شريط علامات التبويب</h3>
+        <label><input type="checkbox" id="toggle-home"> الرئيسية</label>
+        <label><input type="checkbox" id="toggle-quran-audio"> القرآن صوت</label>
+        <label><input type="checkbox" id="toggle-video-quran"> مقاطع قرآنية</label>
+        <label><input type="checkbox" id="toggle-grok"> Grok</label>
+        <label><input type="checkbox" id="toggle-prayer-times"> مواقيت الصلاة</label>
+        <label><input type="checkbox" id="toggle-account"> حسابي</label>
+        <button onclick="applyCustomization()">حفظ التغييرات</button>
+    </div>
+</div>
+
+ <script>
+  // روابط صور الأيقونات لكل ثيم
+  const icons = {
+    light: {
+      home: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1756343801/ConvertedWebP0_qyrdwj.webp",
+      quran: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530232/ConvertedWebP12_psjxim.webp",
+      video: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530232/ConvertedWebP3_hdz43k.webp",
+      grok: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1740017246/eJSGWIz_yo9ziy.png",
+      prayer: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530233/ConvertedWebP4_z6azak.webp",
+      account: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1739310353/sCq53dG_5_quhcn3.png"
+    },
+    dark: {
+      home: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530374/ConvertedWebP0_qyrdwj.webp",
+      quran: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530118/ConvertedWebP7_nacuio.webp",
+      video: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530109/ConvertedWebP10_e9esau.webp",
+      grok: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752486683/20250714_125044_ev1znc.png",
+      prayer: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530108/ConvertedWebP0_a36iqh.webp",
+      account: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530112/ConvertedWebP12_y05y2c.webp"
+    },
+    blue: {
+      home: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530374/ConvertedWebP0_qyrdwj.webp",
+      quran: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530118/ConvertedWebP7_nacuio.webp",
+      video: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530109/ConvertedWebP10_e9esau.webp",
+      grok: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1752486683/20250714_125044_ev1znc.png",
+      prayer: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530108/ConvertedWebP0_a36iqh.webp",
+      account: "https://res.cloudinary.com/dtdnb4yp1/image/upload/v1738530112/ConvertedWebP12_y05y2c.webp"
+    }
+  };
+
+  // دالة تحديث الأيقونات بناءً على الثيم
+  function updateFooterIcons(theme) {
+    const iconMap = {
+      'home-icon': icons[theme].home,
+      'quran-icon': icons[theme].quran,
+      'video-icon': icons[theme].video,
+      'grok-icon': icons[theme].grok,
+      'prayer-icon': icons[theme].prayer,
+      'account-icon': icons[theme].account
+    };
+
+    Object.keys(iconMap).forEach(id => {
+      const img = document.getElementById(id);
+      if (img) img.src = iconMap[id];
+    });
+  }
+
+  // تحميل الثيم المخزن وتطبيق الأيقونات
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    updateFooterIcons(theme);
+  }
+
+  // عند تحميل الصفحة
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+  });
+
+  // دالة تبديل الثيم (إذا كان لديك زر toggle)
+  function toggleTheme() {
+    const themes = ['light', 'dark', 'blue'];
+    const current = localStorage.getItem('theme') || 'light';
+    const nextIndex = (themes.indexOf(current) + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  }
+  
+  
+  // كود إخفاء وإظهار الشريط السفلي عند التمرير
+    let lastScrollTop = 0;
+    const footer = document.getElementById("foot");
+    window.addEventListener("scroll", function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop) {
+            footer.classList.add("hidden");
+        } else {
+            footer.classList.remove("hidden");
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+</script>
+
+
+</body>
+</html>
+
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صورة منبثقة كل 15 يوم</title>
+    <style>
+        /* تنسيق النافذة المنبثقة */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* خلفية شفافة */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh; /* تحديد ارتفاع الصورة */
+            object-fit: contain;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .close-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <!-- النافذة المنبثقة -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeModal()">X</button>
+            <a href="go:985565"><img src="https://res.cloudinary.com/dtdnb4yp1/image/upload/v1750684309/%D9%A2%D9%A0%D9%A2%D9%A5%D9%A0%D9%A6%D9%A2%D9%A3_%D9%A1%D9%A6%D9%A0%D9%A7%D9%A0%D9%A9_pj5kka.png" alt="صورة منبثقة" class="modal-image">
+        </div>
+    </div>
+
+    <script>
+        // دالة لإظهار النافذة المنبثقة
+        function showModal() {
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        // دالة لإغلاق النافذة المنبثقة
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            // حفظ وقت الإغلاق في localStorage
+            localStorage.setItem('lastImageShown', Date.now());
+        }
+
+        // دالة للتحقق إذا كان لازم نعرض الصورة
+        function shouldShowImage() {
+            const lastShown = localStorage.getItem('lastImageShown');
+            const fifteenDaysInMs = 60 * 24 * 60 * 60 * 1000; // 15 يوم بالمللي ثانية
+            const now = Date.now();
+
+            // لو مفيش تاريخ محفوظ أو مرّ أكتر من 15 يوم
+            if (!lastShown || (now - lastShown) > fifteenDaysInMs) {
+                return true;
+            }
+            return false;
+        }
+
+        // عند تحميل الصفحة، نفحص إذا كان لازم نعرض الصورة
+        window.onload = function() {
+            if (shouldShowImage()) {
+                showModal();
+            }
+        };
+    </script>
+</body>
+</html>
+
+
+  
+<script language="JavaScript">
+<!--
+//Disable right click script III- By Renigade (renigade@mediaone.net) //Disable select-text script (IE4+, NS6+)- By Andy Scott //Visit http://hashem-earn-from-internet.blogspot.com/ 
+var message=""; 
+function clickIE() {
+if (document.all) {
+(message);return false;
+}
+} function clickNS(e) { 
+if (document.layers||(document.getElementById&&!document.all)) { 
+if (e.which==2||e.which==3) { (message); return false;
+} } } if (document.layers) { document.captureEvents(Event.MOUSEDOWN); 
+document.onmousedown=clickNS;
+} else { document.onmouseup=clickNS;
+document.oncontextmenu=clickIE; 
+} document.oncontextmenu=new Function("return false")
+function disableselect(e) { return false } function reEnable() { return true } 
+document.onselectstart=new Function ("return false") //if NS6 if (window.sidebar){ document.onmousedown=disableselect document.onclick=reEnable } //
+//-->
+</script>
+  
+  <script type='text/القران الكريم'> 
+function nocontext(e) {var clickedTag = (e==null) ? event.srcElement.tagName : e.target.tagName; if (clickedTag == "IMG") {alert(alertMsg);return false;}} var alertMsg = "ممنوع تحميل الصورة";document.oncontextmenu = nocontext; 
+  </script>
+  
+  
+
+
+</div></div>
+
+
+
+
+
+
+<style>
+.image-container img {
+    transition: transform 0.2s ease-in-out;
+}
+
+.image-container img:active {
+    transform: scale(1.1);
+}
+</style>
+
+<div class="lang-buttons">
+    
+</div>
+
+<style>
+*{-webkit-tap-highlight-color:transparent;user-select:none;margin:0;padding:0;box-sizing:border-box;outline:none;user-select:none;}
+</style>
+</head>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منع نسخ الصور</title>
+    
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const longClickElement = document.getElementById('myLongClickPrevent');
+    let pressTimer;
+
+    if (longClickElement) {
+        longClickElement.addEventListener('mousedown', function(e) {
+            // منع تحديد النص مباشرة عند بداية النقر إذا أردت
+            e.preventDefault();
+
+            pressTimer = setTimeout(function() {
+                // هذا الكود سيتم تشغيله بعد "نقر مطول" (مثلاً 500ms)
+                alert('تم اكتشاف نقرة طويلة! تم منع أي سلوك افتراضي.');
+                // هنا يمكنك منع المزيد من الإجراءات مثل عرض قائمة السياق
+                // إذا أردت منع قائمة السياق:
+                // longClickElement.addEventListener('contextmenu', function(ce) {
+                //     ce.preventDefault();
+                // });
+
+            }, 500); // 500 ميلي ثانية للنقر المطول
+        });
+
+        longClickElement.addEventListener('mouseup', function(e) {
+            clearTimeout(pressTimer); // مسح المؤقت إذا تم تحرير الزر قبل النقر المطول
+        });
+
+        longClickElement.addEventListener('mouseleave', function(e) {
+            clearTimeout(pressTimer); // مسح المؤقت إذا غادر المؤشر العنصر
+        });
+
+        // لمنع قائمة السياق (context menu) التي قد تظهر عند النقر المطول بالزر الأيمن
+        longClickElement.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('قائمة السياق معطلة لهذا العنصر.');
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+    // لمنع النسخ من عنصر معين (مثلاً فقرة بمعرف "noCopyParagraph")
+    const noCopyParagraph = document.getElementById('noCopyParagraph');
+    if (noCopyParagraph) {
+        noCopyParagraph.addEventListener('copy', function(event) {
+            event.preventDefault(); // يمنع النسخ
+            console.log('تم منع النسخ من هذا العنصر.');
+            // يمكنك إظهار رسالة للمستخدم هنا إذا أردت
+            // alert('النسخ غير مسموح به!');
+        });
+    }
+
+    // لمنع النسخ من كامل المستند (أكثر شمولاً)
+    document.addEventListener('copy', function(event) {
+        event.preventDefault(); // يمنع النسخ من أي مكان في الصفحة
+        console.log('تم منع النسخ من الصفحة بأكملها.');
+        // alert('لا يُسمح بالنسخ في هذه الصفحة!');
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const elementToProtect = document.getElementById('myProtectedElement');
+    if (elementToProtect) {
+        elementToProtect.addEventListener('contextmenu', function(event) {
+            event.preventDefault(); // يمنع ظهور قائمة السياق
+            console.log('تم منع قائمة السياق.');
+        });
+    }
+
+    // لمنع قائمة السياق من كامل المستند
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+        console.log('تم منع قائمة السياق من كامل المستند.');
+    });
+});
+
+    }
+});
+
+    </script>
+
+</body>
+</html>
+<script>
+let touchStartX = 0;
+let touchEndX = 0;
+const swipeThreshold = 80;
+
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+}, { passive: true });
+
+function handleSwipe() {
+    const diff = touchStartX - touchEndX;
+    const isRTL = document.documentElement.dir === 'rtl';
+
+    if (isRTL) {
+        if (diff > swipeThreshold) openSidebar();
+        else if (diff < -swipeThreshold) closeSidebar();
+    } else {
+        if (diff < -swipeThreshold) openSidebar();
+        else if (diff > swipeThreshold) closeSidebar();
+    }
+}
+
+function openSidebar() {
+    document.getElementById('sidebar')?.classList.add('active');
+    document.getElementById('sidebar-overlay')?.classList.add('active');
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar')?.classList.remove('active');
+    document.getElementById('sidebar-overlay')?.classList.remove('active');
+}
+
+// إغلاق بالنقر على الـ overlay
+document.getElementById('sidebar-overlay')?.addEventListener('click', closeSidebar);
+</script>
+<style>
+/* القائمة الجانبية - ميزة السحب الناعم في كل اللغات */
+.sidebar {
+    position: fixed;
+    top: 0;
+    width: 260px;
+    height: 100%;
+    background-color: var(--sidebar-bg);
+    color: var(--text-color);
+    z-index: 1001;
+    overflow-y: auto;
+    
+    /* الحركة الناعمة جدًا */
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* RTL (عربي): تبدأ خارج اليمين */
+[dir="rtl"] .sidebar {
+    right: 0;
+    transform: translateX(100%);
+}
+
+/* LTR (إنجليزي وغيره): تبدأ خارج اليسار */
+[dir="ltr"] .sidebar {
+    left: 0;
+    transform: translateX(-100%);
+}
+
+/* حالة الفتح: ترجع للداخل */
+.sidebar.active {
+    transform: translateX(0);
+}
+
+/* الـ overlay (الخلفية الداكنة) */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.55s ease;
+    pointer-events: none;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+</style>
